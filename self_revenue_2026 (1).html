@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>تحليل الموارد الذاتية — 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root{
+  --navy:#0B2545;--navy-light:#2B5EA7;
+  --accent:#1D9E75;--accent-light:#E1F5EE;
+  --red:#C0392B;--red-light:#FDEDEC;
+  --amber:#D68910;--amber-light:#FEF9E7;
+  --g100:#F7F8FA;--g200:#EEF0F4;--g400:#9AA3B0;--g700:#4A5568;
+  --white:#fff;--border:#E2E8F0;--shadow:0 2px 12px rgba(11,37,69,0.07);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'IBM Plex Sans Arabic',sans-serif;background:var(--g100);color:var(--navy);font-size:14px;line-height:1.7}
+.hdr{background:var(--navy);color:#fff}
+.hdr-inner{max-width:900px;margin:0 auto;padding:24px 32px 20px;display:flex;justify-content:space-between;align-items:flex-start;gap:20px}
+.hdr h1{font-size:19px;font-weight:600;margin-bottom:4px}
+.hdr .sub{font-size:12px;color:rgba(255,255,255,.55)}
+.hdr-meta{text-align:left;font-size:11px;color:rgba(255,255,255,.45);line-height:2;flex-shrink:0}
+.hdr-meta span{color:rgba(255,255,255,.85);font-weight:500}
+.hdr-bar{height:3px;background:linear-gradient(90deg,var(--accent),var(--navy-light))}
+.main{max-width:900px;margin:0 auto;padding:24px 32px 48px}
+.sec-lbl{font-size:12px;font-weight:600;color:var(--g400);letter-spacing:.04em;margin:24px 0 12px;padding-bottom:7px;border-bottom:.5px solid var(--border)}
+.sec-lbl:first-child{margin-top:0}
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:4px}
+.kpi{background:var(--white);border:.5px solid var(--border);border-radius:10px;padding:14px;text-align:center;box-shadow:var(--shadow)}
+.kn{font-size:20px;font-weight:600;line-height:1.2;margin-bottom:4px}
+.kl{font-size:11px;color:var(--g400);line-height:1.4}
+.ks{font-size:11px;font-weight:500;margin-top:3px}
+.card{background:var(--white);border:.5px solid var(--border);border-radius:10px;padding:16px 18px;margin-bottom:14px;box-shadow:var(--shadow)}
+.card-title{font-size:13px;font-weight:600;color:var(--navy);margin-bottom:12px;padding-bottom:8px;border-bottom:.5px solid var(--border)}
+.cr{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:.5px solid var(--border);font-size:12px}
+.cr:last-child{border-bottom:none}
+.cr-l{color:var(--g700)}
+.cr-v{font-weight:500;color:var(--navy);display:flex;align-items:center;gap:8px}
+.red{color:var(--red)}.amber{color:var(--amber)}.green{color:var(--accent)}
+.note{font-size:11px;color:var(--g400);padding:8px 12px;background:var(--g100);border-radius:6px;margin-top:10px;line-height:1.6}
+.may-box{background:var(--white);border:.5px solid var(--border);border-right:3px solid var(--navy-light);border-radius:10px;padding:14px 16px;margin-bottom:14px;box-shadow:var(--shadow)}
+.may-box .mtitle{font-size:12px;font-weight:600;color:var(--navy);margin-bottom:10px}
+.may-row{display:flex;justify-content:space-between;align-items:center;font-size:12px;padding:4px 0}
+.may-row .ml{color:var(--g700)}
+.may-row .mv{font-weight:500}
+.progress-wrap{margin-top:10px}
+.progress-label{font-size:11px;color:var(--g400);margin-bottom:4px}
+.progress-track{height:10px;background:var(--g200);border-radius:5px;overflow:hidden;display:flex}
+.p-col{height:100%;background:var(--accent);border-radius:5px 0 0 5px}
+.p-pen{height:100%;background:var(--g200)}
+.occ-row{display:flex;align-items:center;gap:10px;margin-bottom:9px}
+.occ-lbl{width:60px;font-size:11px;color:var(--navy);text-align:right;flex-shrink:0}
+.occ-track{flex:1;height:10px;background:var(--g200);border-radius:5px;overflow:hidden}
+.occ-fill{height:100%;border-radius:5px}
+.occ-val{width:95px;font-size:11px;font-weight:500;text-align:left;flex-shrink:0}
+.leg{display:flex;gap:14px;flex-wrap:wrap;font-size:11px;color:var(--g700);margin-bottom:10px}
+.leg span{display:flex;align-items:center;gap:5px}
+.ld{width:10px;height:10px;border-radius:2px;display:inline-block}
+.ins{display:flex;gap:14px;padding:13px 0;border-bottom:.5px solid var(--border)}
+.ins:last-child{border-bottom:none;padding-bottom:0}
+.ins-ico{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:15px;margin-top:2px}
+.ins-title{font-size:13px;font-weight:600;color:var(--navy);margin-bottom:3px}
+.ins-desc{font-size:12px;color:var(--g700);line-height:1.6}
+.badge{display:inline-block;padding:2px 10px;border-radius:20px;font-size:11px;font-weight:600;margin-bottom:5px}
+.b-red{background:var(--red-light);color:var(--red)}
+.b-amber{background:var(--amber-light);color:var(--amber)}
+.b-green{background:var(--accent-light);color:#0E6655}
+.b-blue{background:#E6F1FB;color:#0C447C}
+.footer{background:var(--navy);color:rgba(255,255,255,.45);text-align:center;font-size:11px;padding:16px;line-height:1.8}
+.footer span{color:rgba(255,255,255,.8)}
+@media(max-width:600px){.hdr-inner{flex-direction:column}.main{padding:14px}}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="hdr-inner">
+    <div>
+      <h1>تحليل الموارد الذاتية — 2026</h1>
+      <div class="sub">مستشفى الولادة والأطفال &nbsp;|&nbsp; تجمع حفر الباطن الصحي &nbsp;|&nbsp; يناير–مايو 2026</div>
+    </div>
+    <div class="hdr-meta">
+      <div>صادر من</div><div><span>قسم الإحصاء الطبي</span></div>
+      <div style="margin-top:4px">تاريخ الإصدار</div><div><span>4 يونيو 2026</span></div>
+    </div>
+  </div>
+  <div class="hdr-bar"></div>
+</div>
+
+<div class="main">
+
+  <div class="sec-lbl">المؤشرات الرئيسية</div>
+  <div class="kpi-grid">
+    <div class="kpi"><div class="kn" style="color:var(--navy-light)">3,021,086</div><div class="kl">إجمالي المحصّل</div><div class="ks" style="color:var(--g400)">يناير–مايو 2026</div></div>
+    <div class="kpi"><div class="kn" style="color:var(--navy-light)">604,217</div><div class="kl">متوسط المحصّل الشهري</div><div class="ks" style="color:var(--g400)">ريال سعودي</div></div>
+    <div class="kpi"><div class="kn" style="color:var(--accent)">845,314</div><div class="kl">أعلى شهر</div><div class="ks green">يناير</div></div>
+    <div class="kpi"><div class="kn" style="color:var(--red)">478,682</div><div class="kl">أدنى شهر</div><div class="ks red">مارس</div></div>
+    <div class="kpi"><div class="kn" style="color:var(--amber)">334,722</div><div class="kl">قيد التحصيل</div><div class="ks amber">مايو — 38.9%</div></div>
+  </div>
+
+  <div class="sec-lbl">ملاحظة — مايو 2026</div>
+  <div class="may-box">
+    <div class="mtitle">الإيراد الكامل مقابل المحصّل فعلياً</div>
+    <div class="may-row"><div class="ml">الإيراد الكامل المحاسبي</div><div class="mv" style="color:var(--navy-light)">860,047.46 ريال</div></div>
+    <div class="may-row"><div class="ml">المحصّل فعلياً حتى تاريخ التقرير</div><div class="mv green">525,325.71 ريال</div></div>
+    <div class="may-row"><div class="ml">المتبقي قيد التحصيل</div><div class="mv red">334,721.75 ريال</div></div>
+    <div class="progress-wrap">
+      <div class="progress-label">نسبة التحصيل: 61.1% &nbsp;|&nbsp; المتبقي: 38.9%</div>
+      <div class="progress-track">
+        <div class="p-col" style="width:61.1%"></div>
+        <div class="p-pen" style="width:38.9%"></div>
+      </div>
+    </div>
+    <div style="font-size:11px;color:var(--g400);margin-top:8px">جميع الأشهر الأخرى (يناير–أبريل) تمثل المحصّل الكامل &nbsp;|&nbsp; التحليل مبني على المحصّل الفعلي</div>
+  </div>
+
+  <div class="sec-lbl">الموارد الذاتية الشهرية</div>
+  <div class="card">
+    <div class="card-title">المحصّل الفعلي شهرياً (ريال)</div>
+    <div class="leg">
+      <span><span class="ld" style="background:var(--accent)"></span>محصّل كامل</span>
+      <span><span class="ld" style="background:var(--amber)"></span>محصّل جزئي (مايو)</span>
+      <span><span class="ld" style="background:#E2E8F0;border:.5px solid #ccc"></span>قيد التحصيل (مايو)</span>
+    </div>
+    <div style="position:relative;height:250px"><canvas id="revenueChart"></canvas></div>
+    <div class="note">الجزء الرمادي في مايو = 334,722 ريال قيد التحصيل &nbsp;|&nbsp; الإيراد الكامل لمايو = 860,047 ريال</div>
+  </div>
+
+  <div class="sec-lbl">مقارنة بصرية — نسبة كل شهر من الأعلى</div>
+  <div class="card">
+    <div class="occ-row"><div class="occ-lbl">يناير</div><div class="occ-track"><div class="occ-fill" style="width:100%;background:var(--accent)"></div></div><div class="occ-val green">845,314 ريال</div></div>
+    <div class="occ-row"><div class="occ-lbl">فبراير</div><div class="occ-track"><div class="occ-fill" style="width:68.5%;background:var(--amber)"></div></div><div class="occ-val amber">579,173 ريال</div></div>
+    <div class="occ-row"><div class="occ-lbl">مارس</div><div class="occ-track"><div class="occ-fill" style="width:56.6%;background:var(--red)"></div></div><div class="occ-val red">478,682 ريال</div></div>
+    <div class="occ-row"><div class="occ-lbl">أبريل</div><div class="occ-track"><div class="occ-fill" style="width:70.1%;background:var(--amber)"></div></div><div class="occ-val amber">592,591 ريال</div></div>
+    <div class="occ-row"><div class="occ-lbl">مايو</div><div class="occ-track"><div class="occ-fill" style="width:62.1%;background:var(--amber)"></div></div><div class="occ-val amber">525,326 ريال</div></div>
+    <div class="note">يناير = 100% (المرجع) &nbsp;|&nbsp; مايو يمثل المحصّل فقط</div>
+  </div>
+
+  <div class="sec-lbl">التغيير الشهري</div>
+  <div class="card">
+    <div style="position:relative;height:180px"><canvas id="changeChart"></canvas></div>
+  </div>
+
+  <div class="sec-lbl">التفاصيل الشهرية</div>
+  <div class="card">
+    <div class="cr"><div class="cr-l">يناير</div><div class="cr-v green">845,314.26 ريال <span style="font-size:11px;color:var(--g400)">(مرجع — الأعلى)</span></div></div>
+    <div class="cr"><div class="cr-l">فبراير</div><div class="cr-v">579,173.43 ريال <span class="red" style="font-size:11px">▼ 31.5%</span></div></div>
+    <div class="cr"><div class="cr-l">مارس</div><div class="cr-v">478,681.74 ريال <span class="red" style="font-size:11px">▼ 17.4%</span></div></div>
+    <div class="cr"><div class="cr-l">أبريل</div><div class="cr-v">592,591.07 ريال <span class="green" style="font-size:11px">▲ 23.8%</span></div></div>
+    <div class="cr"><div class="cr-l">مايو — محصّل</div><div class="cr-v"><span class="amber">525,325.71 ريال</span> <span class="red" style="font-size:11px">▼ 11.4%</span></div></div>
+    <div class="cr"><div class="cr-l">مايو — قيد التحصيل</div><div class="cr-v" style="color:var(--g400)">334,721.75 ريال <span style="font-size:11px">(38.9%)</span></div></div>
+    <div class="cr"><div class="cr-l">مايو — الإيراد الكامل</div><div class="cr-v" style="color:var(--navy-light)">860,047.46 ريال</div></div>
+    <div class="cr"><div class="cr-l">إجمالي المحصّل (يناير–مايو)</div><div class="cr-v" style="color:var(--navy-light);font-size:14px">3,021,086.21 ريال</div></div>
+    <div class="cr"><div class="cr-l">الإجمالي لو اكتمل تحصيل مايو</div><div class="cr-v" style="color:var(--navy-light)">3,355,808.00 ريال</div></div>
+  </div>
+
+  <div class="sec-lbl">الاستنتاجات</div>
+  <div class="card">
+    <div class="ins">
+      <div class="ins-ico" style="background:#E6F1FB">📌</div>
+      <div><div style="margin-bottom:4px"><span class="badge b-blue">ملاحظة منهجية</span></div>
+        <div class="ins-title">التحليل مبني على المحصّل — وهو الأدق</div>
+        <div class="ins-desc">اختيار التعامل بالمبلغ المحصّل فعلياً أدق من الإيراد المحاسبي لأنه يعكس السيولة الحقيقية. مايو الوحيد بتحصيل جزئي (61.1%) والباقي قيد الاستيفاء.</div>
+      </div>
+    </div>
+    <div class="ins">
+      <div class="ins-ico" style="background:var(--red-light)">⚠</div>
+      <div><div style="margin-bottom:4px"><span class="badge b-red">تنبيه</span></div>
+        <div class="ins-title">تراجع حاد من يناير إلى مارس (-43%)</div>
+        <div class="ins-desc">خسرت الموارد الذاتية 366,632 ريال خلال شهرين. أعمق نقطة كانت مارس بـ 478,682 ريال — يستحق التحقيق في الأسباب.</div>
+      </div>
+    </div>
+    <div class="ins">
+      <div class="ins-ico" style="background:var(--amber-light)">↕</div>
+      <div><div style="margin-bottom:4px"><span class="badge b-amber">متابعة</span></div>
+        <div class="ins-title">أبريل انتعش ثم تراجع في مايو</div>
+        <div class="ins-desc">ارتفع أبريل +23.8% لكن مايو تراجع -11.4% — الاتجاه غير مستقر. يونيو سيكون مؤشراً مهماً.</div>
+      </div>
+    </div>
+    <div class="ins">
+      <div class="ins-ico" style="background:var(--red-light)">⚠</div>
+      <div><div style="margin-bottom:4px"><span class="badge b-red">تنبيه</span></div>
+        <div class="ins-title">334,722 ريال قيد التحصيل من مايو</div>
+        <div class="ins-desc">لو اكتمل تحصيل مايو، سيكون الإجمالي 3,355,808 ريال — أعلى بـ 11% من الحالي. يستحق متابعة جهات التحصيل.</div>
+      </div>
+    </div>
+    <div class="ins">
+      <div class="ins-ico" style="background:#E6F1FB">◎</div>
+      <div><div style="margin-bottom:4px"><span class="badge b-blue">توقع</span></div>
+        <div class="ins-title">الإيرادات السنوية المتوقعة ~7.25 مليون ريال</div>
+        <div class="ins-desc">بناءً على متوسط 604,217 × 12. لكن إذا استمر التراجع عن يناير فالرقم الفعلي سيكون أقل.</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="footer">
+  <div>تحليل الموارد الذاتية &nbsp;|&nbsp; <span>مستشفى الولادة والأطفال</span> &nbsp;|&nbsp; <span>تجمع حفر الباطن الصحي</span></div>
+  <div style="margin-top:3px">صادر من <span>قسم الإحصاء الطبي</span> &nbsp;|&nbsp; <span>4 يونيو 2026</span></div>
+</div>
+
+<script>
+const F={responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}}};
+const grd={grid:{color:'rgba(0,0,0,0.04)'},border:{display:false},ticks:{font:{size:11,family:'IBM Plex Sans Arabic'},color:'#9AA3B0'}};
+const ngrd={grid:{display:false},border:{display:false},ticks:{font:{size:11,family:'IBM Plex Sans Arabic'},color:'#9AA3B0'}};
+
+new Chart(document.getElementById('revenueChart'),{
+  type:'bar',
+  data:{
+    labels:['يناير','فبراير','مارس','أبريل','مايو'],
+    datasets:[
+      {
+        label:'محصّل',
+        data:[845314.26,579173.43,478681.74,592591.07,525325.71],
+        backgroundColor:['#1D9E75','#1D9E75','#1D9E75','#1D9E75','#D68910'],
+        borderRadius:[5,5,5,5,0],
+        borderSkipped:false,
+        stack:'total'
+      },
+      {
+        label:'قيد التحصيل',
+        data:[0,0,0,0,334721.75],
+        backgroundColor:'rgba(200,200,200,0.35)',
+        borderWidth:1.5,
+        borderColor:'#B0B0B0',
+        borderRadius:[0,0,0,0,5],
+        borderSkipped:false,
+        stack:'total'
+      }
+    ]
+  },
+  options:{
+    ...F,
+    scales:{
+      x:{...ngrd},
+      y:{...grd,beginAtZero:false,min:400000,stacked:true,ticks:{callback:v=>(v/1000).toFixed(0)+'K'}}
+    },
+    plugins:{
+      legend:{display:false},
+      tooltip:{callbacks:{label:(ctx)=>{
+        if(ctx.datasetIndex===0) return ` محصّل: ${Math.round(ctx.raw).toLocaleString()} ريال`;
+        if(ctx.raw>0) return ` قيد التحصيل: ${Math.round(ctx.raw).toLocaleString()} ريال`;
+        return null;
+      }}}
+    }
+  }
+});
+
+new Chart(document.getElementById('changeChart'),{
+  type:'bar',
+  data:{
+    labels:['فبراير','مارس','أبريل','مايو'],
+    datasets:[{
+      data:[-31.5,-17.4,23.8,-11.4],
+      backgroundColor:['#C0392B','#C0392B','#1D9E75','#C0392B'],
+      borderRadius:4,borderSkipped:false
+    }]
+  },
+  options:{...F,scales:{x:{...ngrd},y:{...grd,ticks:{callback:v=>v+'%'}}}}
+});
+</script>
+</body>
+</html>
