@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>تقرير فواتير المرضى المنومين — مستشفى الولادة والأطفال</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  #lock-screen{position:fixed;inset:0;z-index:9999;background:#1e293b;display:flex;align-items:center;justify-content:center;font-family:"IBM Plex Sans Arabic",sans-serif}.lock-box{background:#fff;border-radius:14px;padding:2.5rem 2rem;width:320px;text-align:center}.lock-box h2{font-size:1rem;font-weight:600;color:#1a202c;margin-bottom:.3rem}.lock-box p{font-size:.78rem;color:#64748b;margin-bottom:1.5rem}.lock-box input{width:100%;padding:.65rem 1rem;border:1px solid #e2e8f0;border-radius:8px;font-size:1.2rem;text-align:center;letter-spacing:4px;font-family:inherit;outline:none;margin-bottom:1rem;color:#1a202c;direction:ltr}.lock-box input:focus{border-color:#3b82f6}.lock-box button{width:100%;padding:.65rem;background:#1e293b;color:#fff;border:none;border-radius:8px;font-family:inherit;font-size:.9rem;font-weight:500;cursor:pointer}.lock-box button:hover{background:#334155}.lock-error{color:#dc2626;font-size:.75rem;margin-top:.5rem;display:none}
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #f4f6f9;
+    --card: #ffffff;
+    --border: #e2e8f0;
+    --text-primary: #1a202c;
+    --text-secondary: #64748b;
+    --text-muted: #94a3b8;
+    --accent: #1e40af;
+    --accent-light: #dbeafe;
+    --issued: #0f766e;
+    --issued-bg: #ccfbf1;
+    --halted: #b45309;
+    --halted-bg: #fef3c7;
+    --closed: #15803d;
+    --closed-bg: #dcfce7;
+    --open: #1d4ed8;
+    --open-bg: #dbeafe;
+    --canceled: #dc2626;
+    --canceled-bg: #fee2e2;
+    --nav-bg: #1e293b;
+    --nav-text: #cbd5e1;
+    --nav-active: #ffffff;
+    --nav-active-bg: #334155;
+  }
+
+  body {
+    font-family: 'IBM Plex Sans Arabic', sans-serif;
+    background: var(--bg);
+    color: var(--text-primary);
+    min-height: 100vh;
+  }
+
+  .header {
+    background: var(--nav-bg);
+    padding: 1.5rem 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .header-right h1 {
+    color: #fff;
+    font-size: 1.15rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+  }
+
+  .header-right p {
+    color: var(--nav-text);
+    font-size: 0.8rem;
+    margin-top: 3px;
+  }
+
+  .header-left {
+    color: var(--nav-text);
+    font-size: 0.8rem;
+    text-align: left;
+  }
+
+  .header-left span {
+    display: block;
+    color: #fff;
+    font-size: 0.85rem;
+    font-weight: 500;
+  }
+
+  nav {
+    background: var(--nav-bg);
+    border-top: 1px solid #334155;
+    display: flex;
+    gap: 0;
+    padding: 0 2rem;
+    overflow-x: auto;
+  }
+
+  nav button {
+    background: none;
+    border: none;
+    color: var(--nav-text);
+    font-family: inherit;
+    font-size: 0.82rem;
+    font-weight: 400;
+    padding: 0.75rem 1.2rem;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+    transition: all 0.15s;
+  }
+
+  nav button:hover { color: #fff; }
+
+  nav button.active {
+    color: var(--nav-active);
+    border-bottom-color: #60a5fa;
+    font-weight: 500;
+  }
+
+  .content {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+
+  .section { display: none; }
+  .section.active { display: block; }
+
+  .section-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .section-title::before {
+    content: '';
+    display: inline-block;
+    width: 4px;
+    height: 18px;
+    background: #3b82f6;
+    border-radius: 2px;
+  }
+
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .kpi-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.1rem 1.25rem;
+  }
+
+  .kpi-label {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.4rem;
+    font-weight: 400;
+  }
+
+  .kpi-value {
+    font-size: 1.6rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    line-height: 1;
+  }
+
+  .kpi-sub {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    margin-top: 0.3rem;
+  }
+
+  .kpi-card.highlight {
+    background: #1e293b;
+    border-color: #334155;
+  }
+
+  .kpi-card.highlight .kpi-label { color: #94a3b8; }
+  .kpi-card.highlight .kpi-value { color: #fff; }
+  .kpi-card.highlight .kpi-sub { color: #64748b; }
+
+  .badge {
+    display: inline-block;
+    font-size: 0.7rem;
+    font-weight: 500;
+    padding: 2px 8px;
+    border-radius: 4px;
+    white-space: nowrap;
+  }
+
+  .badge-issued   { background: var(--issued-bg);   color: var(--issued); }
+  .badge-halted   { background: var(--halted-bg);   color: var(--halted); }
+  .badge-closed   { background: var(--closed-bg);   color: var(--closed); }
+  .badge-open     { background: var(--open-bg);     color: var(--open); }
+  .badge-canceled { background: var(--canceled-bg); color: var(--canceled); }
+
+  .chart-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .chart-title {
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    margin-bottom: 1.25rem;
+  }
+
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 1rem;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+  }
+
+  .legend span {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.82rem;
+  }
+
+  th {
+    text-align: right;
+    padding: 0.6rem 0.9rem;
+    background: #f8fafc;
+    color: var(--text-secondary);
+    font-weight: 500;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.75rem;
+    white-space: nowrap;
+  }
+
+  td {
+    padding: 0.6rem 0.9rem;
+    border-bottom: 1px solid #f1f5f9;
+    color: var(--text-primary);
+  }
+
+  tr:last-child td { border-bottom: none; }
+
+  tr:hover td { background: #f8fafc; }
+
+  .tfoot td {
+    font-weight: 600;
+    background: #f8fafc;
+    border-top: 1px solid var(--border);
+    border-bottom: none;
+  }
+
+  .table-wrap {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+  }
+
+  .progress-bar {
+    height: 6px;
+    background: #e2e8f0;
+    border-radius: 3px;
+    overflow: hidden;
+    margin-top: 4px;
+  }
+
+  .progress-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.6s ease;
+  }
+
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+
+  @media (max-width: 640px) {
+    .two-col { grid-template-columns: 1fr; }
+    .content { padding: 1rem; }
+    nav { padding: 0 0.5rem; }
+    nav button { padding: 0.65rem 0.75rem; font-size: 0.76rem; }
+  }
+
+  .insight-box {
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 8px;
+    padding: 0.9rem 1.1rem;
+    font-size: 0.8rem;
+    color: #1e40af;
+    margin-bottom: 1rem;
+    line-height: 1.6;
+  }
+
+  .insight-box strong { font-weight: 600; }
+
+  .period-tag {
+    display: inline-block;
+    background: #f1f5f9;
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 3px 10px;
+    font-size: 0.72rem;
+    color: var(--text-secondary);
+    margin-bottom: 1.5rem;
+  }
+</style>
+</head>
+<body>
+<div id="lock-screen"><div class="lock-box"><h2>تقرير فواتير المرضى المنومين</h2><p>مستشفى الولادة والأطفال — تجمع حفر الباطن الصحي</p><input type="password" id="pw-input" placeholder="كلمة المرور" /><button onclick="checkPassword()">دخول</button><div class="lock-error" id="pw-error">كلمة المرور غير صحيحة</div></div></div>
+
+<div class="header">
+  <div class="header-right">
+    <h1>تقرير فواتير المرضى المنومين</h1>
+    <p>مستشفى الولادة والأطفال — تجمع حفر الباطن الصحي</p>
+  </div>
+  <div class="header-left">
+    <span>1,206</span>
+    إجمالي فواتير المنومين
+  </div>
+</div>
+
+<nav>
+  <button class="active" onclick="showTab('overview')">الملخص التنفيذي</button>
+  <button onclick="showTab('insurance')">التأمين</button>
+  <button onclick="showTab('cash')">النقدي</button>
+  <button onclick="showTab('comparison')">المقارنة</button>
+  <button onclick="showTab('denial')">أسباب الرفض</button>
+</nav>
+
+<div class="content">
+
+  <!-- ====== OVERVIEW ====== -->
+  <div class="section active" id="tab-overview">
+    <div class="period-tag">الفترة: 1 يناير – 31 مايو 2026</div>
+
+    <div class="section-title">الملخص التنفيذي</div>
+
+    <div class="kpi-grid">
+      <div class="kpi-card highlight">
+        <div class="kpi-label">إجمالي فواتير المنومين</div>
+        <div class="kpi-value">1,206</div>
+        <div class="kpi-sub">5 أشهر</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">فواتير التأمين</div>
+        <div class="kpi-value">632</div>
+        <div class="kpi-sub">52.4% من الإجمالي</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">فواتير النقدي</div>
+        <div class="kpi-value">574</div>
+        <div class="kpi-sub">47.6% من الإجمالي</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">صادرة — Issued</div>
+        <div class="kpi-value" style="color:var(--issued)">759</div>
+        <div class="kpi-sub">63.0% من الإجمالي</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">نشطة (صادرة + مفتوحة)</div>
+        <div class="kpi-value">790</div>
+        <div class="kpi-sub">65.5% — قيد التحصيل</div>
+      </div>
+    </div>
+
+    <div class="two-col">
+      <div class="chart-card">
+        <div class="chart-title">توزيع الفواتير حسب الحالة — الإجمالي</div>
+        <div class="legend">
+          <span><span class="legend-dot" style="background:#0f766e"></span>صادرة 759</span>
+          <span><span class="legend-dot" style="background:#b45309"></span>متوقفة 325</span>
+          <span><span class="legend-dot" style="background:#15803d"></span>مغلقة 90</span>
+          <span><span class="legend-dot" style="background:#1d4ed8"></span>مفتوحة 31</span>
+          <span><span class="legend-dot" style="background:#dc2626"></span>ملغاة 1</span>
+        </div>
+        <div style="position:relative; height:240px;">
+          <canvas id="donutOverall" role="img" aria-label="توزيع الفواتير الكلية حسب الحالة">صادرة 759، متوقفة 325، مغلقة 90، مفتوحة 31، ملغاة 1</canvas>
+        </div>
+      </div>
+
+      <div class="chart-card">
+        <div class="chart-title">التأمين مقابل النقدي</div>
+        <div class="legend">
+          <span><span class="legend-dot" style="background:#1e40af"></span>تأمين 632</span>
+          <span><span class="legend-dot" style="background:#0f766e"></span>نقدي 574</span>
+        </div>
+        <div style="position:relative; height:240px;">
+          <canvas id="donutSplit" role="img" aria-label="توزيع الفواتير بين التأمين والنقدي">تأمين 632، نقدي 574</canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>حالة الفاتورة</th>
+            <th>التأمين</th>
+            <th>النقدي</th>
+            <th>الإجمالي</th>
+            <th>النسبة</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="badge badge-issued">صادرة — Issued</span></td>
+            <td>313</td><td>446</td><td>759</td>
+            <td>
+              63.0%
+              <div class="progress-bar"><div class="progress-fill" style="width:63%; background:#0f766e;"></div></div>
+            </td>
+          </tr>
+          <tr>
+            <td><span class="badge badge-halted">متوقفة — Halted</span></td>
+            <td>297</td><td>28</td><td>325</td>
+            <td>
+              27.0%
+              <div class="progress-bar"><div class="progress-fill" style="width:27%; background:#b45309;"></div></div>
+            </td>
+          </tr>
+          <tr>
+            <td><span class="badge badge-closed">مغلقة — Closed</span></td>
+            <td>11</td><td>79</td><td>90</td>
+            <td>
+              7.5%
+              <div class="progress-bar"><div class="progress-fill" style="width:7.5%; background:#15803d;"></div></div>
+            </td>
+          </tr>
+          <tr>
+            <td><span class="badge badge-open">مفتوحة — Open</span></td>
+            <td>11</td><td>20</td><td>31</td>
+            <td>
+              2.6%
+              <div class="progress-bar"><div class="progress-fill" style="width:2.6%; background:#1d4ed8;"></div></div>
+            </td>
+          </tr>
+          <tr>
+            <td><span class="badge badge-canceled">ملغاة — Canceled</span></td>
+            <td>0</td><td>1</td><td>1</td>
+            <td>0.1%</td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr class="tfoot">
+            <td>المجموع</td>
+            <td>632</td><td>574</td><td>1,206</td><td>100%</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    <div class="insight-box">
+      <strong>أبرز المؤشرات:</strong><br>
+      • <strong>65.5%</strong> من إجمالي فواتير المنومين نشطة (صادرة + مفتوحة) — قيد دورة التحصيل<br>
+      • التأمين والنقدي متقاربان في الحجم: <strong>52.4%</strong> مقابل <strong>47.6%</strong><br>
+      • <strong>63%</strong> من إجمالي فواتير المنومين بحالة صادرة — المعدل المتوقع ضمن دورة التحصيل الاعتيادية
+    </div>
+  </div>
+
+  <!-- ====== INSURANCE ====== -->
+  <div class="section" id="tab-insurance">
+    <div class="period-tag">الفترة: 1 يناير – 31 مايو 2026</div>
+    <div class="section-title">فواتير التأمين</div>
+
+    <div class="insight-box" style="background:#fff7ed; border-color:#fed7aa; color:#92400e; margin-bottom:1.5rem">
+      <strong>ملاحظة:</strong> جميع البيانات في هذا التقرير تخص المرضى المنومين حصراً.
+    </div>
+
+    <div class="kpi-grid">
+      <div class="kpi-card highlight">
+        <div class="kpi-label">إجمالي التأمين</div>
+        <div class="kpi-value">632</div>
+        <div class="kpi-sub">52.4% من الكل</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">صادرة — Issued</div>
+        <div class="kpi-value" style="color:var(--issued)">313</div>
+        <div class="kpi-sub">49.5%</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">متوقفة — Halted</div>
+        <div class="kpi-value" style="color:var(--halted)">297</div>
+        <div class="kpi-sub">47.0%</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">نشطة (صادرة + مفتوحة)</div>
+        <div class="kpi-value">324</div>
+        <div class="kpi-sub">51.3%</div>
+      </div>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-title">توزيع فواتير التأمين حسب الحالة</div>
+      <div class="legend">
+        <span><span class="legend-dot" style="background:#0f766e"></span>صادرة 313 (49.5%)</span>
+        <span><span class="legend-dot" style="background:#b45309"></span>متوقفة 297 (47.0%)</span>
+        <span><span class="legend-dot" style="background:#15803d"></span>مغلقة 11 (1.7%)</span>
+        <span><span class="legend-dot" style="background:#1d4ed8"></span>مفتوحة 11 (1.7%)</span>
+      </div>
+      <div style="position:relative; height:260px;">
+        <canvas id="barInsurance" role="img" aria-label="توزيع فواتير التأمين">صادرة 313، متوقفة 297، مغلقة 11، مفتوحة 11</canvas>
+      </div>
+    </div>
+
+    <div class="section-title" style="margin-top:1rem">تفصيل الأجنحة</div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>الجناح</th>
+            <th><span class="badge badge-halted">متوقفة</span></th>
+            <th><span class="badge badge-open">مفتوحة</span></th>
+            <th><span class="badge badge-closed">مغلقة</span></th>
+            <th><span class="badge badge-issued">صادرة</span></th>
+            <th>ملغاة</th>
+            <th>المجموع</th>
+          </tr>
+        </thead>
+        <tbody id="insurance-tbody">
+        </tbody>
+        <tfoot id="insurance-tfoot"></tfoot>
+      </table>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-title">إجمالي فواتير المنومين حسب الجناح</div>
+      <div style="position:relative; height:360px;">
+        <canvas id="barWards" role="img" aria-label="توزيع الفواتير حسب الجناح">بيانات الأجنحة</canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== CASH ====== -->
+  <div class="section" id="tab-cash">
+    <div class="period-tag">الفترة: 1 يناير – 31 مايو 2026</div>
+    <div class="section-title">فواتير النقدي</div>
+
+    <div class="kpi-grid">
+      <div class="kpi-card highlight">
+        <div class="kpi-label">إجمالي النقدي</div>
+        <div class="kpi-value">574</div>
+        <div class="kpi-sub">47.6% من الكل</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">صادرة — Issued</div>
+        <div class="kpi-value" style="color:var(--issued)">446</div>
+        <div class="kpi-sub">77.7%</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">مغلقة — Closed</div>
+        <div class="kpi-value" style="color:var(--closed)">79</div>
+        <div class="kpi-sub">13.8%</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">نشطة (صادرة + مفتوحة)</div>
+        <div class="kpi-value">466</div>
+        <div class="kpi-sub">81.2%</div>
+      </div>
+    </div>
+
+    <div class="two-col">
+      <div class="chart-card">
+        <div class="chart-title">توزيع فواتير النقدي حسب الحالة</div>
+        <div class="legend">
+          <span><span class="legend-dot" style="background:#0f766e"></span>صادرة 446</span>
+          <span><span class="legend-dot" style="background:#15803d"></span>مغلقة 79</span>
+          <span><span class="legend-dot" style="background:#b45309"></span>متوقفة 28</span>
+          <span><span class="legend-dot" style="background:#1d4ed8"></span>مفتوحة 20</span>
+          <span><span class="legend-dot" style="background:#dc2626"></span>ملغاة 1</span>
+        </div>
+        <div style="position:relative; height:240px;">
+          <canvas id="donutCash" role="img" aria-label="توزيع فواتير النقدي">صادرة 446، مغلقة 79، متوقفة 28، مفتوحة 20، ملغاة 1</canvas>
+        </div>
+      </div>
+
+      <div class="chart-card">
+        <div class="chart-title">نسبة كل حالة من إجمالي النقدي</div>
+        <div style="position:relative; height:240px;">
+          <canvas id="barCash" role="img" aria-label="نسب حالات فواتير النقدي">بيانات النسب</canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>حالة الفاتورة</th>
+            <th>العدد</th>
+            <th>النسبة من النقدي</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><span class="badge badge-issued">صادرة — Issued</span></td><td>446</td><td><div style="display:flex;align-items:center;gap:8px">77.7%<div class="progress-bar" style="flex:1"><div class="progress-fill" style="width:77.7%;background:#0f766e"></div></div></div></td></tr>
+          <tr><td><span class="badge badge-closed">مغلقة — Closed</span></td><td>79</td><td><div style="display:flex;align-items:center;gap:8px">13.8%<div class="progress-bar" style="flex:1"><div class="progress-fill" style="width:13.8%;background:#15803d"></div></div></div></td></tr>
+          <tr><td><span class="badge badge-halted">متوقفة — Halted</span></td><td>28</td><td><div style="display:flex;align-items:center;gap:8px">4.9%<div class="progress-bar" style="flex:1"><div class="progress-fill" style="width:4.9%;background:#b45309"></div></div></div></td></tr>
+          <tr><td><span class="badge badge-open">مفتوحة — Open</span></td><td>20</td><td><div style="display:flex;align-items:center;gap:8px">3.5%<div class="progress-bar" style="flex:1"><div class="progress-fill" style="width:3.5%;background:#1d4ed8"></div></div></div></td></tr>
+          <tr><td><span class="badge badge-canceled">ملغاة — Canceled</span></td><td>1</td><td>0.2%</td></tr>
+        </tbody>
+        <tfoot>
+          <tr class="tfoot"><td>المجموع</td><td>574</td><td>100%</td></tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
+
+  <!-- ====== DENIAL REASONS ====== -->
+  <div class="section" id="tab-denial">
+    <div class="period-tag">الفترة: 1 يناير – 31 مايو 2026</div>
+    <div class="section-title">أسباب رفض مطالبات التأمين</div>
+
+    <div class="insight-box" style="background:#fff7ed; border-color:#fed7aa; color:#92400e; margin-bottom:1.5rem">
+      <strong>ملاحظة:</strong> جميع البيانات في هذا التقرير تخص المرضى المنومين حصراً.
+    </div>
+
+    <div class="kpi-grid">
+      <div class="kpi-card highlight">
+        <div class="kpi-label">فواتير متوقفة — مرضى منومون</div>
+        <div class="kpi-value" style="color:#f59e0b">297</div>
+        <div class="kpi-sub">47.0% من فواتير التأمين</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">قابلة للمعالجة من طرفنا</div>
+        <div class="kpi-value" style="color:#15803d">جزء منها</div>
+        <div class="kpi-sub">بعد مراجعة التفاصيل</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">تحتاج مراجعة مع التأمين</div>
+        <div class="kpi-value" style="color:#1d4ed8">جزء منها</div>
+        <div class="kpi-sub">بعد مراجعة التفاصيل</div>
+      </div>
+    </div>
+
+    <div class="section-title" style="margin-top:1.5rem">أسباب الرفض الشائعة — وفق العقد الموحد (مجلس الضمان الصحي)</div>
+
+    <div class="two-col" style="margin-bottom:1.5rem">
+
+      <div class="table-wrap">
+        <div style="background:#dcfce7; padding:0.6rem 1rem; font-size:0.78rem; font-weight:600; color:#15803d; border-bottom:1px solid var(--border)">
+          أسباب يمكن معالجتها من طرفنا
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>السبب</th>
+              <th>المرجع</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>تأخر رفع المطالبة أكثر من 30 يوماً من تاريخ الخدمة</td><td style="white-space:nowrap; color:var(--text-secondary); font-size:0.72rem">المادة 5.1 و5.2</td></tr>
+            <tr><td>نقص في المستندات الطبية المؤيدة للمطالبة</td><td style="white-space:nowrap; color:var(--text-secondary); font-size:0.72rem">المادة 4.4(هـ)</td></tr>
+            <tr><td>عدم الحصول على موافقة مسبقة قبل تقديم الخدمة</td><td style="white-space:nowrap; color:var(--text-secondary); font-size:0.72rem">المادة 4.4(د)</td></tr>
+            <tr><td>خطأ في الترميز الطبي (Medical Coding)</td><td style="white-space:nowrap; color:var(--text-secondary); font-size:0.72rem">المادة 2.4(ج)</td></tr>
+            <tr><td>بيانات المطالبة غير مكتملة أو غير صحيحة</td><td style="white-space:nowrap; color:var(--text-secondary); font-size:0.72rem">المادة 4.4(هـ)</td></tr>
+            <tr><td>عدم إبلاغ التأمين خلال 24 ساعة للحالات الطارئة</td><td style="white-space:nowrap; color:var(--text-secondary); font-size:0.72rem">المادة 4.5(ب)</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="table-wrap">
+        <div style="background:#dbeafe; padding:0.6rem 1rem; font-size:0.78rem; font-weight:600; color:#1e40af; border-bottom:1px solid var(--border)">
+          أسباب تحتاج مراجعة مع شركة التأمين
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>السبب</th>
+              <th>المرجع</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>الخدمة خارج نطاق التغطية التأمينية للمريض</td><td style="white-space:nowrap; color:var(--text-secondary); font-size:0.72rem">المادة 1.17</td></tr>
+            <tr><td>تجاوز سقف المنفعة المحددة في الوثيقة</td><td style="white-space:nowrap; color:var(--text-secondary); font-size:0.72rem">المادة 1.18</td></tr>
+            <tr><td>خلاف على التسعير أو الأسعار المتفق عليها</td><td style="white-space:nowrap; color:var(--text-secondary); font-size:0.72rem">المادة 8.1</td></tr>
+            <tr><td>رفض الموافقة على استمرار العلاج بعد التنويم</td><td style="white-space:nowrap; color:var(--text-secondary); font-size:0.72rem">المادة 4.5(د)</td></tr>
+            <tr><td>الخدمة مدرجة ضمن الحالات المستثناة بالوثيقة</td><td style="white-space:nowrap; color:var(--text-secondary); font-size:0.72rem">المادة 1.27</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-title">آلية التسوية وفق العقد الموحد — مسار معالجة الفواتير المتوقفة</div>
+      <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px,1fr)); gap:1rem; padding:0.5rem 0">
+        <div style="text-align:center; padding:1rem; background:#f8fafc; border-radius:8px; border:1px solid var(--border)">
+          <div style="font-size:1.4rem; font-weight:700; color:#b45309">297</div>
+          <div style="font-size:0.75rem; color:var(--text-secondary); margin-top:4px">فاتورة متوقفة</div>
+          <div style="font-size:0.7rem; color:var(--text-muted); margin-top:2px">مرضى منومون فقط</div>
+        </div>
+        <div style="text-align:center; padding:1rem; background:#f8fafc; border-radius:8px; border:1px solid var(--border)">
+          <div style="font-size:0.8rem; font-weight:600; color:#1e40af">الخطوة 1</div>
+          <div style="font-size:0.72rem; color:var(--text-secondary); margin-top:6px">مراجعة المرفوضات وتزويد التأمين بالمستندات المؤيدة</div>
+          <div style="font-size:0.68rem; color:var(--text-muted); margin-top:4px">خلال 15 يوم من استلام الرفض — المادة 5.4</div>
+        </div>
+        <div style="text-align:center; padding:1rem; background:#f8fafc; border-radius:8px; border:1px solid var(--border)">
+          <div style="font-size:0.8rem; font-weight:600; color:#1e40af">الخطوة 2</div>
+          <div style="font-size:0.72rem; color:var(--text-secondary); margin-top:6px">إعادة تقديم المطالبات مع المستندات الداعمة</div>
+          <div style="font-size:0.68rem; color:var(--text-muted); margin-top:4px">التأمين يرد خلال 15 يوم — المادة 5.6</div>
+        </div>
+        <div style="text-align:center; padding:1rem; background:#f8fafc; border-radius:8px; border:1px solid var(--border)">
+          <div style="font-size:0.8rem; font-weight:600; color:#1e40af">الخطوة 3</div>
+          <div style="font-size:0.72rem; color:var(--text-secondary); margin-top:6px">في حال استمرار الرفض — رفع النزاع لمركز الصلح بمجلس الضمان</div>
+          <div style="font-size:0.68rem; color:var(--text-muted); margin-top:4px">خلال 30 يوم عمل — المادة 5.10</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="insight-box" style="background:#fefce8; border-color:#fde047; color:#713f12; margin-top:0.5rem">
+      <strong>ملاحظة:</strong> التفصيل الدقيق لأسباب رفض كل فاتورة متاح في كشف المرفوضات من إدارة الإيراد — وهو المرجع الأساسي لتحديد الأولويات ومتابعة المعالجة.
+    </div>
+
+  </div>
+
+  <!-- ====== COMPARISON ====== -->
+  <div class="section" id="tab-comparison">
+    <div class="period-tag">الفترة: 1 يناير – 31 مايو 2026</div>
+    <div class="section-title">المقارنة — التأمين vs النقدي</div>
+
+    <div class="chart-card">
+      <div class="chart-title">مقارنة النسب حسب حالة الفاتورة</div>
+      <div class="legend">
+        <span><span class="legend-dot" style="background:#1e40af"></span>التأمين</span>
+        <span><span class="legend-dot" style="background:#0f766e; border:1px dashed #0f766e"></span>النقدي</span>
+      </div>
+      <div style="position:relative; height:300px;">
+        <canvas id="barCompare" role="img" aria-label="مقارنة نسب التأمين والنقدي حسب حالة الفاتورة">بيانات مقارنة</canvas>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>حالة الفاتورة</th>
+            <th>التأمين (عدد)</th>
+            <th>التأمين %</th>
+            <th>النقدي (عدد)</th>
+            <th>النقدي %</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><span class="badge badge-issued">صادرة — Issued</span></td><td>313</td><td>49.5%</td><td>446</td><td>77.7%</td></tr>
+          <tr><td><span class="badge badge-halted">متوقفة — Halted</span></td><td>297</td><td>47.0%</td><td>28</td><td>4.9%</td></tr>
+          <tr><td><span class="badge badge-closed">مغلقة — Closed</span></td><td>11</td><td>1.7%</td><td>79</td><td>13.8%</td></tr>
+          <tr><td><span class="badge badge-open">مفتوحة — Open</span></td><td>11</td><td>1.7%</td><td>20</td><td>3.5%</td></tr>
+          <tr><td><span class="badge badge-canceled">ملغاة — Canceled</span></td><td>0</td><td>0.0%</td><td>1</td><td>0.2%</td></tr>
+        </tbody>
+        <tfoot>
+          <tr class="tfoot"><td>المجموع</td><td>632</td><td>100%</td><td>574</td><td>100%</td></tr>
+        </tfoot>
+      </table>
+    </div>
+
+    <div class="kpi-grid" style="margin-top:1.5rem">
+      <div class="kpi-card">
+        <div class="kpi-label">نشطة — التأمين</div>
+        <div class="kpi-value">324</div>
+        <div class="kpi-sub">51.3% من فواتير التأمين</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">نشطة — النقدي</div>
+        <div class="kpi-value">466</div>
+        <div class="kpi-sub">81.2% من فواتير النقدي</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">إجمالي النشطة</div>
+        <div class="kpi-value">790</div>
+        <div class="kpi-sub">65.5% من إجمالي فواتير المنومين</div>
+      </div>
+    </div>
+
+    <div class="insight-box" style="margin-top:1rem">
+      <strong>ملاحظات مقارنة:</strong><br>
+      • نسبة الصادرة في النقدي أعلى بفارق كبير: <strong>77.7%</strong> مقابل <strong>49.5%</strong> في التأمين<br>
+      • نسبة المغلقة في النقدي أعلى: <strong>13.8%</strong> مقابل <strong>1.7%</strong> فقط في التأمين — يُعزى ذلك لدورة تحصيل التأمين (60 يوماً)<br>
+      • الفواتير المفتوحة منخفضة في كلا القطاعين — مؤشر إيجابي
+    </div>
+  </div>
+
+</div>
+
+<script>
+const wards = [
+  { name: 'تنويم ما بعد الولادة', h:76, o:3,  c:3,  i:117, x:0 },
+  { name: 'باطنية أطفال',          h:40, o:2,  c:4,  i:86,  x:0 },
+  { name: 'جراحة اليوم الواحد',    h:8,  o:3,  c:0,  i:3,   x:0 },
+  { name: 'ملاحظة الأطفال',        h:2,  o:0,  c:1,  i:6,   x:0 },
+  { name: 'عناية حديثي الولادة',   h:28, o:0,  c:0,  i:2,   x:0 },
+  { name: 'تنويم ما قبل الولادة',  h:66, o:2,  c:1,  i:63,  x:0 },
+  { name: 'ملاحظة النساء',         h:3,  o:0,  c:0,  i:5,   x:0 },
+  { name: 'غرفة الولادة',          h:13, o:0,  c:0,  i:16,  x:0 },
+  { name: 'جراحة الأطفال',         h:9,  o:1,  c:2,  i:13,  x:0 },
+  { name: 'الول بيبي',             h:52, o:0,  c:0,  i:2,   x:0 }
+];
+
+function showTab(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  event.target.classList.add('active');
+}
+
+function buildInsuranceTable() {
+  const tbody = document.getElementById('insurance-tbody');
+  const tfoot = document.getElementById('insurance-tfoot');
+  let totH=0,totO=0,totC=0,totI=0,totX=0,totAll=0;
+  wards.forEach(w => {
+    const total = w.h+w.o+w.c+w.i+w.x;
+    totH+=w.h; totO+=w.o; totC+=w.c; totI+=w.i; totX+=w.x; totAll+=total;
+    tbody.innerHTML += `<tr>
+      <td>${w.name}</td>
+      <td>${w.h}</td><td>${w.o}</td><td>${w.c}</td><td>${w.i}</td>
+      <td>${w.x}</td><td><strong>${total}</strong></td>
+    </tr>`;
+  });
+  tfoot.innerHTML = `<tr class="tfoot">
+    <td>الإجمالي</td>
+    <td>${totH}</td><td>${totO}</td><td>${totC}</td><td>${totI}</td>
+    <td>${totX}</td><td>${totAll}</td>
+  </tr>`;
+}
+buildInsuranceTable();
+
+const COLORS = {
+  issued:   '#0f766e',
+  halted:   '#b45309',
+  closed:   '#15803d',
+  open:     '#1d4ed8',
+  canceled: '#dc2626',
+  ins:      '#1e40af',
+  cash:     '#0f766e'
+};
+
+new Chart(document.getElementById('donutOverall'), {
+  type: 'doughnut',
+  data: {
+    labels: ['صادرة','متوقفة','مغلقة','مفتوحة','ملغاة'],
+    datasets: [{ data: [759,325,90,31,1], backgroundColor: [COLORS.issued,COLORS.halted,COLORS.closed,COLORS.open,COLORS.canceled], borderWidth: 2, borderColor: '#fff' }]
+  },
+  options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false} } }
+});
+
+new Chart(document.getElementById('donutSplit'), {
+  type: 'doughnut',
+  data: {
+    labels: ['تأمين','نقدي'],
+    datasets: [{ data: [632,574], backgroundColor: [COLORS.ins, COLORS.cash], borderWidth:2, borderColor:'#fff' }]
+  },
+  options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false} } }
+});
+
+new Chart(document.getElementById('barInsurance'), {
+  type: 'bar',
+  data: {
+    labels: ['صادرة','متوقفة','مغلقة','مفتوحة'],
+    datasets: [{
+      data: [313,297,11,11],
+      backgroundColor: [COLORS.issued,COLORS.halted,COLORS.closed,COLORS.open],
+      borderRadius: 5
+    }]
+  },
+  options: {
+    responsive:true, maintainAspectRatio:false,
+    plugins:{ legend:{display:false} },
+    scales:{
+      y:{ beginAtZero:true, grid:{color:'#f1f5f9'}, ticks:{color:'#64748b',font:{size:11}} },
+      x:{ grid:{display:false}, ticks:{color:'#64748b',font:{size:11}} }
+    }
+  }
+});
+
+new Chart(document.getElementById('barWards'), {
+  type: 'bar',
+  data: {
+    labels: wards.map(w => w.name),
+    datasets: [
+      { label:'صادرة',  data: wards.map(w=>w.i), backgroundColor: COLORS.issued,   borderRadius:3 },
+      { label:'متوقفة', data: wards.map(w=>w.h), backgroundColor: COLORS.halted,   borderRadius:3 },
+      { label:'مغلقة',  data: wards.map(w=>w.c), backgroundColor: COLORS.closed,   borderRadius:3 },
+      { label:'مفتوحة', data: wards.map(w=>w.o), backgroundColor: COLORS.open,     borderRadius:3 },
+    ]
+  },
+  options: {
+    responsive:true, maintainAspectRatio:false, indexAxis:'y',
+    plugins:{ legend:{display:true, position:'top', labels:{font:{size:11}, color:'#64748b', boxWidth:12, boxHeight:12}} },
+    scales:{
+      x:{ stacked:true, beginAtZero:true, grid:{color:'#f1f5f9'}, ticks:{color:'#64748b',font:{size:10}} },
+      y:{ stacked:true, grid:{display:false}, ticks:{color:'#374151',font:{size:10}} }
+    }
+  }
+});
+
+new Chart(document.getElementById('donutCash'), {
+  type: 'doughnut',
+  data: {
+    labels: ['صادرة','مغلقة','متوقفة','مفتوحة','ملغاة'],
+    datasets: [{ data: [446,79,28,20,1], backgroundColor:[COLORS.issued,COLORS.closed,COLORS.halted,COLORS.open,COLORS.canceled], borderWidth:2, borderColor:'#fff' }]
+  },
+  options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}} }
+});
+
+new Chart(document.getElementById('barCash'), {
+  type: 'bar',
+  data: {
+    labels: ['صادرة','مغلقة','متوقفة','مفتوحة','ملغاة'],
+    datasets: [{
+      data: [77.7,13.8,4.9,3.5,0.2],
+      backgroundColor: [COLORS.issued,COLORS.closed,COLORS.halted,COLORS.open,COLORS.canceled],
+      borderRadius: 5
+    }]
+  },
+  options: {
+    responsive:true, maintainAspectRatio:false,
+    plugins:{ legend:{display:false} },
+    scales:{
+      y:{ beginAtZero:true, max:100, grid:{color:'#f1f5f9'}, ticks:{color:'#64748b',font:{size:11}, callback:v=>v+'%'} },
+      x:{ grid:{display:false}, ticks:{color:'#64748b',font:{size:11}} }
+    }
+  }
+});
+
+new Chart(document.getElementById('barCompare'), {
+  type: 'bar',
+  data: {
+    labels: ['صادرة','متوقفة','مغلقة','مفتوحة','ملغاة'],
+    datasets: [
+      { label:'التأمين', data:[49.5,47.0,1.7,1.7,0.0], backgroundColor: COLORS.ins, borderRadius:4 },
+      { label:'النقدي',  data:[77.7,4.9,13.8,3.5,0.2], backgroundColor: COLORS.cash, borderRadius:4 }
+    ]
+  },
+  options: {
+    responsive:true, maintainAspectRatio:false,
+    plugins:{ legend:{ display:true, position:'top', labels:{font:{size:11},color:'#64748b',boxWidth:12,boxHeight:12} } },
+    scales:{
+      y:{ beginAtZero:true, max:100, grid:{color:'#f1f5f9'}, ticks:{color:'#64748b',font:{size:11},callback:v=>v+'%'} },
+      x:{ grid:{display:false}, ticks:{color:'#64748b',font:{size:11}} }
+    }
+  }
+});
+</script>
+<script>function checkPassword(){var v=document.getElementById("pw-input").value;if(v==="14141414"){document.getElementById("lock-screen").style.display="none"}else{document.getElementById("pw-error").style.display="block";document.getElementById("pw-input").value="";document.getElementById("pw-input").focus()}}document.addEventListener("DOMContentLoaded",function(){var i=document.getElementById("pw-input");if(i)i.addEventListener("keydown",function(e){if(e.key==="Enter")checkPassword()})});</script></body>
+</html>
