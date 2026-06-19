@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>التحليل الإحصائي — يونيو 2026</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap');
+  :root {
+    --bg: #0b0f1a;
+    --surface: #131929;
+    --surface2: #1a2235;
+    --border: #1e2d45;
+    --accent: #1e6fff;
+    --accent2: #00c6a7;
+    --accent3: #f59e0b;
+    --red: #ef4444;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --green: #22c55e;
+    --orange: #f97316;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Tajawal', sans-serif; min-height: 100vh; }
+
+  /* LOGIN */
+  #loginScreen {
+    position: fixed; inset: 0; background: var(--bg);
+    display: flex; align-items: center; justify-content: center; z-index: 999;
+  }
+  .login-box {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 16px; padding: 48px 40px; text-align: center; width: 360px;
+  }
+  .login-box h2 { font-size: 1.4rem; margin-bottom: 8px; color: var(--text); }
+  .login-box p { color: var(--muted); font-size: 0.9rem; margin-bottom: 28px; }
+  .login-box input {
+    width: 100%; padding: 12px 16px; background: var(--bg);
+    border: 1px solid var(--border); border-radius: 8px;
+    color: var(--text); font-size: 1rem; text-align: center;
+    font-family: 'Tajawal', sans-serif; margin-bottom: 16px; outline: none;
+  }
+  .login-box input:focus { border-color: var(--accent); }
+  .login-box button {
+    width: 100%; padding: 12px; background: var(--accent);
+    border: none; border-radius: 8px; color: #fff;
+    font-size: 1rem; font-family: 'Tajawal', sans-serif;
+    cursor: pointer; font-weight: 700;
+  }
+  .login-box button:hover { background: #1a5fe0; }
+  .login-err { color: var(--red); font-size: 0.85rem; margin-top: 10px; display: none; }
+
+  /* MAIN */
+  #mainContent { display: none; }
+  
+  /* HEADER */
+  .header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 20px 32px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .header-title h1 { font-size: 1.3rem; font-weight: 800; color: var(--text); }
+  .header-title p { font-size: 0.82rem; color: var(--muted); margin-top: 2px; }
+  .header-badge {
+    background: var(--accent); color: #fff;
+    padding: 6px 14px; border-radius: 20px; font-size: 0.82rem; font-weight: 700;
+  }
+
+  /* TABS */
+  .tabs {
+    background: var(--surface); border-bottom: 1px solid var(--border);
+    display: flex; overflow-x: auto; padding: 0 20px; gap: 4px;
+  }
+  .tab {
+    padding: 14px 20px; cursor: pointer; font-size: 0.85rem; font-weight: 600;
+    color: var(--muted); border-bottom: 3px solid transparent;
+    white-space: nowrap; transition: all 0.2s;
+  }
+  .tab:hover { color: var(--text); }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  /* CONTENT */
+  .content { padding: 28px 32px; max-width: 1400px; margin: 0 auto; }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* KPI GRID */
+  .kpi-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 16px; margin-bottom: 28px; }
+  .kpi-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 20px 16px; text-align: center;
+  }
+  .kpi-card .kpi-val { font-size: 2rem; font-weight: 800; line-height: 1; }
+  .kpi-card .kpi-label { font-size: 0.78rem; color: var(--muted); margin-top: 6px; }
+  .kpi-card .kpi-sub { font-size: 0.72rem; color: var(--muted); margin-top: 3px; }
+  .kpi-blue .kpi-val { color: var(--accent); }
+  .kpi-green .kpi-val { color: var(--accent2); }
+  .kpi-orange .kpi-val { color: var(--accent3); }
+  .kpi-red .kpi-val { color: var(--red); }
+
+  /* SECTION */
+  .section-title {
+    font-size: 1rem; font-weight: 700; color: var(--text);
+    margin-bottom: 16px; padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .section-title::before { content:''; width:4px; height:18px; background:var(--accent); border-radius:2px; display:inline-block; }
+
+  /* CHART WRAPPER */
+  .chart-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin-bottom: 24px; }
+  .chart-wrap h3 { font-size: 0.9rem; color: var(--muted); margin-bottom: 16px; font-weight: 500; }
+
+  /* SVG BAR CHART */
+  .bar-chart-svg { width: 100%; overflow-x: auto; }
+
+  /* TABLE */
+  .tbl-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: auto; margin-bottom: 24px; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+  thead th { background: var(--surface2); padding: 10px 12px; color: var(--muted); font-weight: 600; text-align: center; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  tbody td { padding: 9px 12px; text-align: center; border-bottom: 1px solid var(--border); }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover { background: var(--surface2); }
+  .td-date { color: var(--accent); font-weight: 600; }
+  .td-day { color: var(--muted); }
+  .td-census { font-weight: 700; color: var(--text); }
+  .total-row td { background: var(--surface2); font-weight: 700; color: var(--accent2); border-top: 2px solid var(--border); }
+
+  /* WARD TABLE */
+  .ward-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; margin-bottom: 24px; }
+  .ward-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+  .ward-name { font-size: 0.8rem; color: var(--muted); margin-bottom: 8px; font-weight: 600; }
+  .ward-pct { font-size: 1.8rem; font-weight: 800; }
+  .ward-detail { font-size: 0.75rem; color: var(--muted); margin-top: 4px; }
+  .progress-bar { height: 6px; background: var(--border); border-radius: 3px; margin-top: 8px; overflow: hidden; }
+  .progress-fill { height: 100%; border-radius: 3px; }
+  .pct-red { color: var(--red); }
+  .pct-orange { color: var(--orange); }
+  .pct-yellow { color: var(--accent3); }
+  .pct-green { color: var(--accent2); }
+  .fill-red { background: var(--red); }
+  .fill-orange { background: var(--orange); }
+  .fill-yellow { background: var(--accent3); }
+  .fill-green { background: var(--accent2); }
+
+  /* ALERT */
+  .alert { background: var(--surface2); border-radius: 10px; padding: 16px 20px; margin-bottom: 12px; border-right: 4px solid var(--accent); }
+  .alert-title { font-size: 0.9rem; font-weight: 700; margin-bottom: 4px; }
+  .alert-body { font-size: 0.82rem; color: var(--muted); line-height: 1.6; }
+  .alert-red { border-color: var(--red); }
+  .alert-orange { border-color: var(--orange); }
+  .alert-green { border-color: var(--accent2); }
+
+  /* WEEK COMPARE */
+  .week-grid { display: grid; grid-template-columns: 1fr auto 1fr; gap: 16px; margin-bottom: 24px; align-items: center; }
+  .week-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; text-align: center; }
+  .week-card h4 { font-size: 0.8rem; color: var(--muted); margin-bottom: 12px; }
+  .week-census { font-size: 2.2rem; font-weight: 800; color: var(--accent); }
+  .week-stats { display: flex; justify-content: center; gap: 16px; margin-top: 12px; font-size: 0.78rem; }
+  .week-stat span { color: var(--muted); display: block; font-size: 0.7rem; }
+  .diff-box { text-align: center; }
+  .diff-val { font-size: 1.6rem; font-weight: 800; }
+  .diff-up { color: var(--red); }
+  .diff-down { color: var(--accent2); }
+
+  /* CPR */
+  .cpr-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin-bottom: 12px; display: flex; gap: 16px; align-items: flex-start; }
+  .cpr-badge { min-width: 80px; text-align: center; }
+  .cpr-date { font-size: 0.8rem; color: var(--accent); font-weight: 700; }
+  .cpr-outcome { font-size: 0.72rem; margin-top: 4px; padding: 3px 8px; border-radius: 20px; }
+  .outcome-survived { background: rgba(34,197,94,0.15); color: var(--green); }
+  .outcome-death { background: rgba(239,68,68,0.15); color: var(--red); }
+  .cpr-info { font-size: 0.82rem; }
+  .cpr-info strong { color: var(--text); }
+  .cpr-info p { color: var(--muted); margin-top: 3px; font-size: 0.78rem; line-height: 1.5; }
+
+  /* DAY PATTERN */
+  .day-pattern { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; margin-bottom: 24px; }
+  .day-cell { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 12px 8px; text-align: center; }
+  .day-cell .day-name { font-size: 0.72rem; color: var(--muted); }
+  .day-cell .day-avg { font-size: 1.3rem; font-weight: 800; margin: 4px 0; }
+  .day-cell .day-pct { font-size: 0.72rem; color: var(--muted); }
+
+  /* LEGEND */
+  .legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: 0.78rem; color: var(--muted); margin-bottom: 16px; }
+  .legend-item { display: flex; align-items: center; gap: 6px; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+
+  /* FOOTER */
+  .footer { text-align: center; padding: 24px; color: var(--muted); font-size: 0.78rem; border-top: 1px solid var(--border); margin-top: 40px; }
+
+  @media (max-width: 768px) {
+    .content { padding: 16px; }
+    .header { padding: 16px; flex-direction: column; gap: 10px; text-align: center; }
+    .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+    .week-grid { grid-template-columns: 1fr; }
+    .day-pattern { grid-template-columns: repeat(4, 1fr); }
+  }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginScreen">
+  <div class="login-box">
+    <h2>🔒 التحليل الإحصائي</h2>
+    <p>مستشفى الولادة والأطفال — يونيو 2026</p>
+    <input type="password" id="pwInput" placeholder="أدخل كلمة المرور" onkeydown="if(event.key==='Enter')doLogin()">
+    <button onclick="doLogin()">دخول</button>
+    <p class="login-err" id="loginErr">كلمة المرور غير صحيحة</p>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div id="mainContent">
+
+<div class="header">
+  <div class="header-title">
+    <h1>مستشفى الولادة والأطفال — تجمع حفر الباطن الصحي</h1>
+    <p>التحليل الإحصائي — الفترة: 1 — 18 يونيو 2026 | 18 يوماً | السعة الكلية: 300 سرير</p>
+  </div>
+  <div class="header-badge">إجمالي الأيام <strong>18 يوم</strong> يونيو 2026</div>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="showTab('overview',this)">نظرة عامة</div>
+  <div class="tab" onclick="showTab('occupancy',this)">الإشغال</div>
+  <div class="tab" onclick="showTab('delivery',this)">الولادة</div>
+  <div class="tab" onclick="showTab('operations',this)">العمليات</div>
+  <div class="tab" onclick="showTab('er',this)">التنويم من الطوارئ</div>
+  <div class="tab" onclick="showTab('turnover',this)">الدوران</div>
+  <div class="tab" onclick="showTab('cpr',this)">الإنعاش والوفيات</div>
+  <div class="tab" onclick="showTab('fulldata',this)">البيانات الكاملة</div>
+</div>
+
+<div class="content">
+
+<!-- ===== OVERVIEW ===== -->
+<div class="tab-panel active" id="tab-overview">
+
+  <div class="kpi-grid">
+    <div class="kpi-card kpi-blue">
+      <div class="kpi-val">137</div>
+      <div class="kpi-label">إشغال آخر يوم — 18/06</div>
+      <div class="kpi-sub">45.7% من الطاقة الكلية (300 سرير)</div>
+    </div>
+    <div class="kpi-card kpi-blue">
+      <div class="kpi-val">147.2</div>
+      <div class="kpi-label">متوسط الإشغال اليومي</div>
+      <div class="kpi-sub">49.1% — الفترة 1–18 يونيو 2026</div>
+    </div>
+    <div class="kpi-card kpi-red">
+      <div class="kpi-val">2</div>
+      <div class="kpi-label">وفيات خلال الفترة</div>
+      <div class="kpi-sub">0.23% من إجمالي الدخول (886)</div>
+    </div>
+    <div class="kpi-card kpi-green">
+      <div class="kpi-val">886</div>
+      <div class="kpi-label">إجمالي الدخول</div>
+      <div class="kpi-sub">49.2 / يوم</div>
+    </div>
+    <div class="kpi-card kpi-green">
+      <div class="kpi-val">890</div>
+      <div class="kpi-label">إجمالي الخروج</div>
+      <div class="kpi-sub">49.4 / يوم</div>
+    </div>
+    <div class="kpi-card kpi-orange">
+      <div class="kpi-val">199</div>
+      <div class="kpi-label">مواليد أحياء</div>
+      <div class="kpi-sub">11.1 / يوم</div>
+    </div>
+    <div class="kpi-card kpi-orange">
+      <div class="kpi-val">220</div>
+      <div class="kpi-label">إجمالي العمليات</div>
+      <div class="kpi-sub">12.2 / يوم</div>
+    </div>
+    <div class="kpi-card kpi-blue">
+      <div class="kpi-val">840</div>
+      <div class="kpi-label">منومون من الطوارئ</div>
+      <div class="kpi-sub">OBS ER: 502 | PER: 338</div>
+    </div>
+  </div>
+
+  <div class="section-title">حالة الأقسام — متوسط الإشغال (18 يوم)</div>
+  <div class="ward-grid">
+
+    <div class="ward-card">
+      <div class="ward-name">NICU — عناية حديثي الولادة</div>
+      <div class="ward-pct pct-red">89.2%</div>
+      <div class="ward-detail">متوسط: <strong>35.7</strong> / سعة: <strong>40</strong></div>
+      <div class="progress-bar"><div class="progress-fill fill-red" style="width:89.2%"></div></div>
+    </div>
+
+    <div class="ward-card">
+      <div class="ward-name">OB/GYNE 1 — قسم النساء 1</div>
+      <div class="ward-pct pct-orange">77.0%</div>
+      <div class="ward-detail">متوسط: <strong>26.2</strong> / سعة: <strong>34</strong></div>
+      <div class="progress-bar"><div class="progress-fill fill-orange" style="width:77%"></div></div>
+    </div>
+
+    <div class="ward-card">
+      <div class="ward-name">OB/GYNE 2 — قسم النساء 2</div>
+      <div class="ward-pct pct-orange">70.3%</div>
+      <div class="ward-detail">متوسط: <strong>37.3</strong> / سعة: <strong>53</strong></div>
+      <div class="progress-bar"><div class="progress-fill fill-orange" style="width:70.3%"></div></div>
+    </div>
+
+    <div class="ward-card">
+      <div class="ward-name">Pedia Medical — باطنية الأطفال</div>
+      <div class="ward-pct pct-yellow">33.5%</div>
+      <div class="ward-detail">متوسط: <strong>43.2</strong> / سعة: <strong>129</strong></div>
+      <div class="progress-bar"><div class="progress-fill fill-yellow" style="width:33.5%"></div></div>
+    </div>
+
+    <div class="ward-card">
+      <div class="ward-name">IMC — ملاحظة النساء</div>
+      <div class="ward-pct pct-yellow">43.9%</div>
+      <div class="ward-detail">متوسط: <strong>4.8</strong> / سعة: <strong>11</strong></div>
+      <div class="progress-bar"><div class="progress-fill fill-yellow" style="width:43.9%"></div></div>
+    </div>
+
+    <div class="ward-card">
+      <div class="ward-name">PICU — عناية مركزة أطفال</div>
+      <div class="ward-pct pct-green">20.1%</div>
+      <div class="ward-detail">متوسط: <strong>1.6</strong> / سعة: <strong>8</strong></div>
+      <div class="progress-bar"><div class="progress-fill fill-green" style="width:20.1%"></div></div>
+    </div>
+
+    <div class="ward-card">
+      <div class="ward-name">Pedia Surgical — جراحة الأطفال</div>
+      <div class="ward-pct pct-green">20.2%</div>
+      <div class="ward-detail">متوسط: <strong>5.1</strong> / سعة: <strong>25</strong></div>
+      <div class="progress-bar"><div class="progress-fill fill-green" style="width:20.2%"></div></div>
+    </div>
+  </div>
+
+  <div class="legend">
+    <span>● أحمر: فوق 80%</span>
+    <span>● برتقالي: 60–80%</span>
+    <span>● أصفر: 40–60%</span>
+    <span>● أخضر: أقل من 40%</span>
+  </div>
+
+  <div class="section-title">مقارنة الأسابيع</div>
+  <div class="week-grid">
+    <div class="week-card">
+      <h4>الأسبوع الأول — 1 إلى 7 يونيو</h4>
+      <div class="week-census">151.6</div>
+      <div style="font-size:0.78rem;color:var(--muted);margin-top:6px;">متوسط الإشغال</div>
+      <div class="week-stats">
+        <div><strong>363</strong><span>دخول</span></div>
+        <div><strong>342</strong><span>خروج</span></div>
+        <div><strong>170</strong><span>ذروة</span></div>
+      </div>
+    </div>
+    <div class="diff-box">
+      <div class="diff-val diff-down">↓ 6.2</div>
+      <div style="font-size:0.75rem;color:var(--muted);">−4.1%</div>
+    </div>
+    <div class="week-card">
+      <h4>الأسبوع الثاني — 8 إلى 14 يونيو</h4>
+      <div class="week-census">145.4</div>
+      <div style="font-size:0.78rem;color:var(--muted);margin-top:6px;">متوسط الإشغال</div>
+      <div class="week-stats">
+        <div><strong>339</strong><span>دخول</span></div>
+        <div><strong>354</strong><span>خروج</span></div>
+        <div><strong>139</strong><span>أدنى</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-title">الأيام 16–18 يونيو (جديد)</div>
+  <div class="tbl-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>التاريخ</th><th>اليوم</th><th>الإشغال</th><th>دخول</th><th>خروج</th>
+          <th>مواليد</th><th>عمليات</th><th>OBS ER</th><th>PER</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="td-date">16/06</td><td class="td-day">الثلاثاء</td>
+          <td class="td-census">148</td><td>56</td><td>42</td>
+          <td>12</td><td>17</td><td>35</td><td>18</td>
+        </tr>
+        <tr>
+          <td class="td-date">17/06</td><td class="td-day">الأربعاء</td>
+          <td class="td-census">151</td><td>47</td><td>49</td>
+          <td>11</td><td>14</td><td>29</td><td>20</td>
+        </tr>
+        <tr>
+          <td class="td-date">18/06</td><td class="td-day">الخميس</td>
+          <td class="td-census">137</td><td>43</td><td>57</td>
+          <td>12</td><td>11</td><td>18</td><td>20</td>
+        </tr>
+        <tr class="total-row">
+          <td colspan="2">إجمالي / متوسط</td>
+          <td>145.3</td><td>146</td><td>148</td>
+          <td>35</td><td>42</td><td>82</td><td>58</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="section-title">أبرز التنبيهات والمؤشرات</div>
+  <div class="alert alert-red">
+    <div class="alert-title">NICU — إشغال مرتفع باستمرار</div>
+    <div class="alert-body">وحدة عناية حديثي الولادة سجّلت <strong>89.2%</strong> إشغالاً طوال الفترة بمتوسط <strong>35.7 من 40 سرير</strong>. الأقرب للاكتظاظ ويستدعي المتابعة المستمرة.</div>
+  </div>
+  <div class="alert alert-orange">
+    <div class="alert-title">ذروة السبت — 170 مريض (56.7%)</div>
+    <div class="alert-body">السبت 6/6 سجّل أعلى إشغال في الفترة مع أدنى خروج (<strong>33 فقط</strong>). السبت بشكل عام هو الأعلى إشغالاً بمتوسط <strong>159 مريض</strong>.</div>
+  </div>
+  <div class="alert alert-orange">
+    <div class="alert-title">OB/GYNE 1 — تجاوز الطاقة يوم 6/6</div>
+    <div class="alert-body">وصل قسم النساء 1 إلى <strong>36 مريضة من 34 سرير (105.9%)</strong> يوم السبت 6/6. متوسط إشغاله <strong>77.0%</strong>.</div>
+  </div>
+  <div class="alert alert-green">
+    <div class="alert-title">انخفاض ملحوظ في الإشغال — 16 إلى 18 يونيو</div>
+    <div class="alert-body">انخفض إشغال 18/6 إلى <strong>137</strong> وهو أدنى من متوسط الفترة (147.2). يعكس تحسناً في معدل الخروج (57 يوم الخميس).</div>
+  </div>
+
+  <div class="section-title">ملخص الأرقام الكلية</div>
+  <div class="kpi-grid">
+    <div class="kpi-card kpi-blue"><div class="kpi-val">886</div><div class="kpi-label">إجمالي الدخول</div></div>
+    <div class="kpi-card kpi-blue"><div class="kpi-val">890</div><div class="kpi-label">إجمالي الخروج</div></div>
+    <div class="kpi-card kpi-green"><div class="kpi-val">199</div><div class="kpi-label">مواليد أحياء</div></div>
+    <div class="kpi-card kpi-orange"><div class="kpi-val">39</div><div class="kpi-label">إجهاضات</div></div>
+    <div class="kpi-card kpi-orange"><div class="kpi-val">220</div><div class="kpi-label">إجمالي العمليات</div></div>
+    <div class="kpi-card kpi-blue"><div class="kpi-val">840</div><div class="kpi-label">منومون من الطوارئ</div></div>
+    <div class="kpi-card kpi-red"><div class="kpi-val">3</div><div class="kpi-label">CPR</div></div>
+    <div class="kpi-card kpi-blue"><div class="kpi-val">3.0</div><div class="kpi-label">متوسط الإقامة (يوم)</div></div>
+  </div>
+</div>
+
+<!-- ===== OCCUPANCY ===== -->
+<div class="tab-panel" id="tab-occupancy">
+  <div class="kpi-grid">
+    <div class="kpi-card kpi-blue"><div class="kpi-val">147.2</div><div class="kpi-label">متوسط الإشغال اليومي</div><div class="kpi-sub">49.1% من الطاقة</div></div>
+    <div class="kpi-card kpi-red"><div class="kpi-val">170</div><div class="kpi-label">أعلى إشغال</div><div class="kpi-sub">السبت 06/06</div></div>
+    <div class="kpi-card kpi-green"><div class="kpi-val">134</div><div class="kpi-label">أدنى إشغال</div><div class="kpi-sub">الاثنين 15/06</div></div>
+    <div class="kpi-card kpi-blue"><div class="kpi-val">137</div><div class="kpi-label">آخر إشغال</div><div class="kpi-sub">الخميس 18/06</div></div>
+  </div>
+
+  <div class="chart-wrap">
+    <h3>منحنى الإشغال اليومي — 18 يوم</h3>
+    <svg viewBox="0 0 900 200" class="bar-chart-svg" xmlns="http://www.w3.org/2000/svg">
+      <!-- اليوم-اليوم-->
+      <defs>
+        <linearGradient id="barGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#1e6fff" stop-opacity="1"/>
+          <stop offset="100%" stop-color="#1e6fff" stop-opacity="0.4"/>
+        </linearGradient>
+      </defs>
+      <!-- data: 142,143,154,147,148,170,157,150,156,139,140,143,148,142,134,148,151,137 -->
+      <!-- max=170, min=100, range=70, height=140, scale=(val-100)/70*140 -->
+      <!-- x: 18 bars, width=900, margin=20 each side, inner=860, bar_w=28, gap=20 -->
+      <!-- bars at x=30+i*47+0 -->
+      <line x1="20" y1="155" x2="880" y2="155" stroke="#1e2d45" stroke-width="1"/>
+      <!-- avg line at (147.2-100)/70*140 = 94.4 → y=155-94.4=60.6 -->
+      <line x1="20" y1="61" x2="880" y2="61" stroke="#f59e0b" stroke-width="1" stroke-dasharray="4 3"/>
+      <text x="885" y="65" fill="#f59e0b" font-size="9" font-family="Tajawal">متوسط 147.2</text>
+
+      <!-- bars -->
+      <!-- i=0: 142 h=(142-100)/70*140=84  y=155-84=71 -->
+      <rect x="30" y="71" width="28" height="84" fill="url(#barGrad)" rx="3"/>
+      <text x="44" y="67" text-anchor="middle" fill="#e2e8f0" font-size="8.5" font-family="Tajawal">142</text>
+      <text x="44" y="170" text-anchor="middle" fill="#64748b" font-size="8" font-family="Tajawal">1/6</text>
+
+      <!-- i=1: 143 h=86 y=69 -->
+      <rect x="77" y="69" width="28" height="86" fill="url(#barGrad)" rx="3"/>
+      <text x="91" y="65" text-anchor="middle" fill="#e2e8f0" font-size="8.5" font-family="Tajawal">143</text>
+      <text x="91" y="170" text-anchor="middle" fill="#64748b" font-size="8" font-family="Tajawal">2/6</text>
+
+      <!-- i=2: 154 h=108 y=47 -->
+      <rect x="124" y="47" width="28" height="108" fill="url(#barGrad)" rx="3"/>
+      <text x="138" y="43" text-anchor="middle" fill="#e2e8f0" font-size="8.5" font-family="Tajawal">154</text>
+      <text x="138" y="170" text-anchor="middle" fill="#64748b" font-size="8" font-family="Tajawal">3/6</text>
+
+      <!-- i=3: 147 h=94 y=61 -->
+      <rect x="171" y="61" width="28" height="94" fill="url(#barGrad)" rx="3"/>
+      <text x="185" y="57" text-anchor="middle" fill="#e2e8f0" font-size="8.5" font-family="Tajawal">147</text>
+      <text x="185" y="170" text-anchor="middle" fill="#64748b" font-size="8" font-family="Tajawal">4/6</text>
+
+      <!-- i=4: 148 h=96 y=59 -->
+      <rect x="218" y="59" width="28" height="96" fill="url(#barGrad)" rx="3"/>
+      <text x="232" y="55" text-anchor="middle" fill="#e2e8f0" font-size="8.5" font-family="Tajawal">148</text>
+      <text x="232" y="170" text-anchor="middle" fill="#64748b" font-size="8" font-family="Tajawal">5/6</text>
+
+      <!-- i=5: 170 h=140 y=15 PEAK -->
+      <rect x="265" y="15" width="28" height="140" fill="#ef4444" rx="3"/>
+      <text x="279" y="11" text-anchor="middle" fill="#ef4444" font-size="8.5" font-family="Tajawal" font-weight="bold">170▲</text>
+      <text x="279" y="170" text-anchor="middle" fill="#64748b" font-size="8" font-family="Tajawal">6/6</text>
+
+      <!-- i=6: 157 h=114 y=41 -->
+      <rect x="312" y="41" width="28" height="114" fill="url(#barGrad)" rx="3"/>
+      <text x="326" y="37" text-anchor="middle" fill="#e2e8f0" font-size="8.5" font-family="Tajawal">157</text>
+      <text x="326" y="170" text-anchor="middle" fill="#64748b" font-size="8" font-family="Tajawal">7/6</text>
+
+      <!-- i=7: 150 h=100 y=55 -->
+      <rect x="359" y="55" width="28" height="100" fill="url(#barGrad)" rx="3"/>
+      <text x="373" y="51" text-anchor="middle" fill="#e2e8f0" font-size="8.5" font-family="Tajawal">150</text>
+      <text x="373" y="170" text-anchor="middle" fill="#64748b" font-size="8" font-family="Tajawal">8/6</text>
+
+      <!-- i=8: 156 h=112 y=43 -->
+      <rect x="406" y="43" width="28" height="112" fill="url(#barGrad)" rx="3"/>
+      <text x="420" y="39" text-anchor="middle" fill="#e2e8f0" font-size="8.5" font-family="Tajawal">156</text>
+      <text x="420" y="170" text-anchor="middle" fill="#64748b" font-size="8" font-family="Tajawal">9/6</text>
+
+      <!-- i=9: 139 h=78 y=77 -->
+      <rect x="453" y="77" width="28" height="78" fill="url(#barGrad)" rx="3"/>
+      <text x="467" y="73" text-anchor="middle" fill="#e2e8f0" font-size="8.5" font-family="Tajawal">139</text>
+      <text x="467" y="170" text-anchor="middle" fill="#64748b" font-size="8" font-family="Tajawal">10/6</text>
+
+      <!-- i=10: 140 h=80 y=75 -->
+      <rect x="500" y="75" width="28" height="80" fill="url(#barGrad)" rx="3"/>
+      <text x="514" y="71" text-anchor="middle" fill="#e2e8f0" font-size="8.5" font-family="Tajawal">140</text>
+      <text x="514" y="170" text-anchor="middle" fill="#64748b" font-size="8" font-family="Tajawal">11/6</text>
+
+      <!-- i=11: 143 h=86 y=69 -->
+      <rect x="547" y="69" width="28" height="86" fill="url(#barGrad)" rx="3"/>
+      <text x="561" y="65" text-anchor="middle" fill="#e2e8f0" font-size="8.5" font-family="Tajawal">143</text>
+      <text x="561" y="170" text-anchor="middle" fill="#64748b" font-size="8" font-family="Tajawal">12/6</text>
+
+      <!-- i=12: 148 h=96 y=59 -->
+      <rect x="594" y="59" width="28" height="96" fill="url(#barGrad)" rx="3"/>
+      <text x="608" y="55" text-anchor="middle" fill="#e2e8f0" font-size="8.5" font-family="Tajawal">148</text>
+      <text x="608" y="170" text-anchor="middle" fill="#64748b" font-size="8" font-family="Tajawal">13/6</text>
+
+      <!-- i=13: 142 h=84 y=71 -->
+      <rect x="641" y="71" width="28" height="84" fill="url(#barGrad)" rx="3"/>
+      <text x="655" y="67" text-anchor="middle" fill="#e2e8f0" font-size="8.5" font-family="Tajawal">142</text>
+      <text x="655" y="170" text-anchor="middle" fill="#64748b" font-size="8" font-family="Tajawal">14/6</text>
+
+      <!-- i=14: 134 h=68 y=87 -->
+      <rect x="688" y="87" width="28" height="68" fill="url(#barGrad)" rx="3"/>
+      <text x="702" y="83" text-anchor="middle" fill="#e2e8f0" font-size="8.5" font-family="Tajawal">134</text>
+      <text x="702" y="170" text-anchor="middle" fill="#64748b" font-size="8" font-family="Tajawal">15/6</text>
+
+      <!-- i=15: 148 h=96 y=59 NEW -->
+      <rect x="735" y="59" width="28" height="96" fill="#00c6a7" rx="3"/>
+      <text x="749" y="55" text-anchor="middle" fill="#00c6a7" font-size="8.5" font-family="Tajawal">148</text>
+      <text x="749" y="170" text-anchor="middle" fill="#00c6a7" font-size="8" font-family="Tajawal">16/6</text>
+
+      <!-- i=16: 151 h=102 y=53 NEW -->
+      <rect x="782" y="53" width="28" height="102" fill="#00c6a7" rx="3"/>
+      <text x="796" y="49" text-anchor="middle" fill="#00c6a7" font-size="8.5" font-family="Tajawal">151</text>
+      <text x="796" y="170" text-anchor="middle" fill="#00c6a7" font-size="8" font-family="Tajawal">17/6</text>
+
+      <!-- i=17: 137 h=74 y=81 NEW -->
+      <rect x="829" y="81" width="28" height="74" fill="#00c6a7" rx="3"/>
+      <text x="843" y="77" text-anchor="middle" fill="#00c6a7" font-size="8.5" font-family="Tajawal">137</text>
+      <text x="843" y="170" text-anchor="middle" fill="#00c6a7" font-size="8" font-family="Tajawal">18/6▼</text>
+
+      <!-- labels -->
+      <text x="2" y="18" fill="#64748b" font-size="8" font-family="Tajawal">170</text>
+      <text x="2" y="65" fill="#64748b" font-size="8" font-family="Tajawal">148</text>
+      <text x="2" y="100" fill="#64748b" font-size="8" font-family="Tajawal">135</text>
+      <text x="2" y="155" fill="#64748b" font-size="8" font-family="Tajawal">100</text>
+    </svg>
+    <div style="font-size:0.75rem;color:var(--muted);margin-top:8px;">
+      🟦 الأيام 1–15 &nbsp;&nbsp; 🟩 الأيام 16–18 (جديد) &nbsp;&nbsp; — — متوسط 147.2
+    </div>
+  </div>
+
+  <div class="section-title">نمط الإشغال حسب اليوم</div>
+  <div class="day-pattern">
+    <div class="day-cell"><div class="day-name">الأحد</div><div class="day-avg" style="color:var(--accent)">150</div><div class="day-pct">50.0%</div></div>
+    <div class="day-cell"><div class="day-name">الاثنين</div><div class="day-avg" style="color:var(--accent)">142</div><div class="day-pct">47.3%</div></div>
+    <div class="day-cell"><div class="day-name">الثلاثاء</div><div class="day-avg" style="color:var(--accent)">146</div><div class="day-pct">48.7%</div></div>
+    <div class="day-cell"><div class="day-name">الأربعاء</div><div class="day-avg" style="color:var(--accent)">148</div><div class="day-pct">49.4%</div></div>
+    <div class="day-cell"><div class="day-name">الخميس</div><div class="day-avg" style="color:var(--accent)">143</div><div class="day-pct">47.8%</div></div>
+    <div class="day-cell"><div class="day-name">الجمعة</div><div class="day-avg" style="color:var(--accent)">146</div><div class="day-pct">48.5%</div></div>
+    <div class="day-cell"><div class="day-name">السبت</div><div class="day-avg" style="color:var(--red)">159</div><div class="day-pct">53.0%</div></div>
+  </div>
+  <p style="font-size:0.8rem;color:var(--muted);margin-bottom:24px;"><strong style="color:var(--red)">السبت الأعلى (159)</strong> — الاثنين الأدنى (142). الفارق 17 مريض.</p>
+</div>
+
+<!-- ===== DELIVERY ===== -->
+<div class="tab-panel" id="tab-delivery">
+  <div class="kpi-grid">
+    <div class="kpi-card kpi-green"><div class="kpi-val">199</div><div class="kpi-label">مواليد أحياء</div><div class="kpi-sub">11.1 / يوم</div></div>
+    <div class="kpi-card kpi-blue"><div class="kpi-val">194</div><div class="kpi-label">ولادات طبيعية NSD</div><div class="kpi-sub">10.8 / يوم</div></div>
+    <div class="kpi-card kpi-orange"><div class="kpi-val">39</div><div class="kpi-label">إجهاضات</div><div class="kpi-sub">2.2 / يوم</div></div>
+    <div class="kpi-card kpi-red"><div class="kpi-val">3</div><div class="kpi-label">IUFD</div><div class="kpi-sub">وفاة داخل الرحم</div></div>
+    <div class="kpi-card kpi-blue"><div class="kpi-val">18</div><div class="kpi-label">أعلى يوم ولادات</div><div class="kpi-sub">14/06 الأحد</div></div>
+  </div>
+
+  <div class="section-title">تفاصيل الولادات — 18 يوم</div>
+  <div class="tbl-wrap">
+    <table>
+      <thead>
+        <tr><th>التاريخ</th><th>اليوم</th><th>NSD</th><th>مواليد أحياء</th><th>إجهاض</th><th>IUFD</th><th>تحويل NICU</th></tr>
+      </thead>
+      <tbody>
+        <tr><td class="td-date">01/06</td><td class="td-day">الاثنين</td><td>13</td><td>13</td><td>2</td><td>—</td><td>1</td></tr>
+        <tr><td class="td-date">02/06</td><td class="td-day">الثلاثاء</td><td>9</td><td>12</td><td>4</td><td>—</td><td>—</td></tr>
+        <tr><td class="td-date">03/06</td><td class="td-day">الأربعاء</td><td>12</td><td>12</td><td>2</td><td>1</td><td>—</td></tr>
+        <tr><td class="td-date">04/06</td><td class="td-day">الخميس</td><td>12</td><td>12</td><td>3</td><td>—</td><td>1</td></tr>
+        <tr><td class="td-date">05/06</td><td class="td-day">الجمعة</td><td>13</td><td>13</td><td>3</td><td>—</td><td>3</td></tr>
+        <tr><td class="td-date">06/06</td><td class="td-day">السبت</td><td>5</td><td>5</td><td>1</td><td>—</td><td>—</td></tr>
+        <tr><td class="td-date">07/06</td><td class="td-day">الأحد</td><td>12</td><td>12</td><td>—</td><td>1</td><td>1</td></tr>
+        <tr><td class="td-date">08/06</td><td class="td-day">الاثنين</td><td>12</td><td>12</td><td>3</td><td>—</td><td>—</td></tr>
+        <tr><td class="td-date">09/06</td><td class="td-day">الثلاثاء</td><td>13</td><td>13</td><td>1</td><td>—</td><td>1</td></tr>
+        <tr><td class="td-date">10/06</td><td class="td-day">الأربعاء</td><td>8</td><td>8</td><td>1</td><td>—</td><td>—</td></tr>
+        <tr><td class="td-date">11/06</td><td class="td-day">الخميس</td><td>16</td><td>16</td><td>4</td><td>—</td><td>—</td></tr>
+        <tr><td class="td-date">12/06</td><td class="td-day">الجمعة</td><td>8</td><td>8</td><td>—</td><td>—</td><td>1</td></tr>
+        <tr><td class="td-date">13/06</td><td class="td-day">السبت</td><td>3</td><td>3</td><td>—</td><td>—</td><td>1</td></tr>
+        <tr><td class="td-date">14/06</td><td class="td-day">الأحد</td><td>13</td><td>18</td><td>5</td><td>—</td><td>1</td></tr>
+        <tr><td class="td-date">15/06</td><td class="td-day">الاثنين</td><td>10</td><td>7</td><td>1</td><td>—</td><td>1</td></tr>
+        <tr style="background:rgba(0,198,167,0.05)"><td class="td-date">16/06</td><td class="td-day" style="color:var(--accent2)">الثلاثاء ★</td><td>10</td><td>12</td><td>2</td><td>1</td><td>—</td></tr>
+        <tr style="background:rgba(0,198,167,0.05)"><td class="td-date">17/06</td><td class="td-day" style="color:var(--accent2)">الأربعاء ★</td><td>13</td><td>11</td><td>6</td><td>—</td><td>2</td></tr>
+        <tr style="background:rgba(0,198,167,0.05)"><td class="td-date">18/06</td><td class="td-day" style="color:var(--accent2)">الخميس ★</td><td>12</td><td>12</td><td>1</td><td>—</td><td>—</td></tr>
+        <tr class="total-row"><td colspan="2">الإجمالي</td><td>194</td><td>199</td><td>39</td><td>3</td><td>13</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p style="font-size:0.78rem;color:var(--muted);">★ أيام جديدة (16–18 يونيو)</p>
+</div>
+
+<!-- ===== OPERATIONS ===== -->
+<div class="tab-panel" id="tab-operations">
+  <div class="kpi-grid">
+    <div class="kpi-card kpi-blue"><div class="kpi-val">220</div><div class="kpi-label">إجمالي العمليات</div><div class="kpi-sub">12.2 / يوم</div></div>
+    <div class="kpi-card kpi-green"><div class="kpi-val">110</div><div class="kpi-label">OBS مجدولة</div><div class="kpi-sub">55.0% من OBS</div></div>
+    <div class="kpi-card kpi-orange"><div class="kpi-val">90</div><div class="kpi-label">OBS طارئة</div><div class="kpi-sub">45.0% من OBS</div></div>
+    <div class="kpi-card kpi-green"><div class="kpi-val">9</div><div class="kpi-label">Pedia مجدولة</div><div class="kpi-sub">45.0% من Pedia</div></div>
+    <div class="kpi-card kpi-orange"><div class="kpi-val">11</div><div class="kpi-label">Pedia طارئة</div><div class="kpi-sub">55.0% من Pedia</div></div>
+  </div>
+
+  <div class="section-title">العمليات اليومية — 18 يوم</div>
+  <div class="tbl-wrap">
+    <table>
+      <thead>
+        <tr><th>التاريخ</th><th>اليوم</th><th>OBS مجدولة</th><th>OBS طارئة</th><th>Pedia مجدولة</th><th>Pedia طارئة</th><th>الإجمالي</th></tr>
+      </thead>
+      <tbody>
+        <tr><td class="td-date">01/06</td><td class="td-day">الاثنين</td><td>8</td><td>3</td><td>—</td><td>1</td><td>12</td></tr>
+        <tr><td class="td-date">02/06</td><td class="td-day">الثلاثاء</td><td>6</td><td>8</td><td>—</td><td>—</td><td>14</td></tr>
+        <tr><td class="td-date">03/06</td><td class="td-day">الأربعاء</td><td>6</td><td>2</td><td>—</td><td>—</td><td>8</td></tr>
+        <tr><td class="td-date">04/06</td><td class="td-day">الخميس</td><td>4</td><td>9</td><td>1</td><td>—</td><td>14</td></tr>
+        <tr><td class="td-date">05/06</td><td class="td-day">الجمعة</td><td>—</td><td>7</td><td>—</td><td>—</td><td>7</td></tr>
+        <tr><td class="td-date">06/06</td><td class="td-day">السبت</td><td>—</td><td>7</td><td>—</td><td>—</td><td>7</td></tr>
+        <tr><td class="td-date">07/06</td><td class="td-day">الأحد</td><td>11</td><td>5</td><td>3</td><td>—</td><td>19</td></tr>
+        <tr><td class="td-date">08/06</td><td class="td-day">الاثنين</td><td>9</td><td>5</td><td>1</td><td>1</td><td>16</td></tr>
+        <tr><td class="td-date">09/06</td><td class="td-day">الثلاثاء</td><td>5</td><td>3</td><td>1</td><td>1</td><td>10</td></tr>
+        <tr><td class="td-date">10/06</td><td class="td-day">الأربعاء</td><td>8</td><td>5</td><td>—</td><td>1</td><td>14</td></tr>
+        <tr><td class="td-date">11/06</td><td class="td-day">الخميس</td><td>8</td><td>5</td><td>1</td><td>2</td><td>16</td></tr>
+        <tr><td class="td-date">12/06</td><td class="td-day">الجمعة</td><td>—</td><td>6</td><td>—</td><td>2</td><td>8</td></tr>
+        <tr><td class="td-date">13/06</td><td class="td-day">السبت</td><td>—</td><td>5</td><td>—</td><td>—</td><td>5</td></tr>
+        <tr><td class="td-date">14/06</td><td class="td-day">الأحد</td><td>12</td><td>6</td><td>—</td><td>1</td><td>19</td></tr>
+        <tr><td class="td-date">15/06</td><td class="td-day">الاثنين</td><td>7</td><td>1</td><td>—</td><td>1</td><td>9</td></tr>
+        <tr style="background:rgba(0,198,167,0.05)"><td class="td-date">16/06</td><td class="td-day" style="color:var(--accent2)">الثلاثاء ★</td><td>12</td><td>4</td><td>—</td><td>1</td><td>17</td></tr>
+        <tr style="background:rgba(0,198,167,0.05)"><td class="td-date">17/06</td><td class="td-day" style="color:var(--accent2)">الأربعاء ★</td><td>7</td><td>5</td><td>2</td><td>—</td><td>14</td></tr>
+        <tr style="background:rgba(0,198,167,0.05)"><td class="td-date">18/06</td><td class="td-day" style="color:var(--accent2)">الخميس ★</td><td>7</td><td>4</td><td>—</td><td>—</td><td>11</td></tr>
+        <tr class="total-row"><td colspan="2">الإجمالي</td><td>110</td><td>90</td><td>9</td><td>11</td><td>220</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p style="font-size:0.78rem;color:var(--muted);">★ أيام جديدة (16–18 يونيو)</p>
+</div>
+
+<!-- ===== ER ===== -->
+<div class="tab-panel" id="tab-er">
+  <div class="kpi-grid">
+    <div class="kpi-card kpi-blue"><div class="kpi-val">840</div><div class="kpi-label">إجمالي المنومين من الطوارئ</div><div class="kpi-sub">46.7 / يوم</div></div>
+    <div class="kpi-card kpi-orange"><div class="kpi-val">502</div><div class="kpi-label">طوارئ النساء OBS ER</div><div class="kpi-sub">27.9 / يوم</div></div>
+    <div class="kpi-card kpi-green"><div class="kpi-val">338</div><div class="kpi-label">طوارئ الأطفال PER</div><div class="kpi-sub">18.8 / يوم</div></div>
+    <div class="kpi-card kpi-red"><div class="kpi-val">56</div><div class="kpi-label">أعلى يوم</div><div class="kpi-sub">07/06 الأحد</div></div>
+  </div>
+
+  <div class="section-title">التنويم من الطوارئ — يومياً</div>
+  <div class="tbl-wrap">
+    <table>
+      <thead>
+        <tr><th>التاريخ</th><th>اليوم</th><th>منومو OBS ER</th><th>منومو PER</th><th>الإجمالي</th></tr>
+      </thead>
+      <tbody>
+        <tr><td class="td-date">01/06</td><td class="td-day">الاثنين</td><td>28</td><td>20</td><td>48</td></tr>
+        <tr><td class="td-date">02/06</td><td class="td-day">الثلاثاء</td><td>25</td><td>21</td><td>46</td></tr>
+        <tr><td class="td-date">03/06</td><td class="td-day">الأربعاء</td><td>30</td><td>13</td><td>43</td></tr>
+        <tr><td class="td-date">04/06</td><td class="td-day">الخميس</td><td>27</td><td>24</td><td>51</td></tr>
+        <tr><td class="td-date">05/06</td><td class="td-day">الجمعة</td><td>30</td><td>17</td><td>47</td></tr>
+        <tr><td class="td-date">06/06</td><td class="td-day">السبت</td><td>39</td><td>16</td><td>55</td></tr>
+        <tr><td class="td-date">07/06</td><td class="td-day">الأحد</td><td>32</td><td>24</td><td>56</td></tr>
+        <tr><td class="td-date">08/06</td><td class="td-day">الاثنين</td><td>30</td><td>24</td><td>54</td></tr>
+        <tr><td class="td-date">09/06</td><td class="td-day">الثلاثاء</td><td>29</td><td>15</td><td>44</td></tr>
+        <tr><td class="td-date">10/06</td><td class="td-day">الأربعاء</td><td>27</td><td>10</td><td>37</td></tr>
+        <tr><td class="td-date">11/06</td><td class="td-day">الخميس</td><td>25</td><td>28</td><td>53</td></tr>
+        <tr><td class="td-date">12/06</td><td class="td-day">الجمعة</td><td>18</td><td>21</td><td>39</td></tr>
+        <tr><td class="td-date">13/06</td><td class="td-day">السبت</td><td>26</td><td>12</td><td>38</td></tr>
+        <tr><td class="td-date">14/06</td><td class="td-day">الأحد</td><td>33</td><td>19</td><td>52</td></tr>
+        <tr><td class="td-date">15/06</td><td class="td-day">الاثنين</td><td>21</td><td>16</td><td>37</td></tr>
+        <tr style="background:rgba(0,198,167,0.05)"><td class="td-date">16/06</td><td class="td-day" style="color:var(--accent2)">الثلاثاء ★</td><td>35</td><td>18</td><td>53</td></tr>
+        <tr style="background:rgba(0,198,167,0.05)"><td class="td-date">17/06</td><td class="td-day" style="color:var(--accent2)">الأربعاء ★</td><td>29</td><td>20</td><td>49</td></tr>
+        <tr style="background:rgba(0,198,167,0.05)"><td class="td-date">18/06</td><td class="td-day" style="color:var(--accent2)">الخميس ★</td><td>18</td><td>20</td><td>38</td></tr>
+        <tr class="total-row"><td colspan="2">الإجمالي</td><td>502</td><td>338</td><td>840</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p style="font-size:0.78rem;color:var(--muted);">★ أيام جديدة (16–18 يونيو)</p>
+</div>
+
+<!-- ===== TURNOVER ===== -->
+<div class="tab-panel" id="tab-turnover">
+  <div class="kpi-grid">
+    <div class="kpi-card kpi-blue"><div class="kpi-val">3.0</div><div class="kpi-label">متوسط مدة الإقامة</div><div class="kpi-sub">يوم</div></div>
+    <div class="kpi-card kpi-green"><div class="kpi-val">71</div><div class="kpi-label">أعلى معدل خروج</div><div class="kpi-sub">07/06 الأحد</div></div>
+    <div class="kpi-card kpi-orange"><div class="kpi-val">33</div><div class="kpi-label">أدنى معدل خروج</div><div class="kpi-sub">06/06 السبت</div></div>
+    <div class="kpi-card kpi-blue"><div class="kpi-val">33.6%</div><div class="kpi-label">نسبة الدوران اليومي</div><div class="kpi-sub">خروج / census</div></div>
+    <div class="kpi-card kpi-blue"><div class="kpi-val">890</div><div class="kpi-label">إجمالي الخروج</div><div class="kpi-sub">49.4 / يوم</div></div>
+    <div class="kpi-card kpi-green"><div class="kpi-val">83.4%</div><div class="kpi-label">نسبة السعوديين</div><div class="kpi-sub">من إجمالي الدخول</div></div>
+  </div>
+
+  <div class="section-title">معدل الدوران اليومي</div>
+  <div class="tbl-wrap">
+    <table>
+      <thead>
+        <tr><th>التاريخ</th><th>اليوم</th><th>Census</th><th>دخول</th><th>خروج</th><th>دوران%</th><th>سعودي</th><th>غير سعودي</th></tr>
+      </thead>
+      <tbody>
+        <tr><td class="td-date">01/06</td><td class="td-day">الاثنين</td><td class="td-census">142</td><td>50</td><td>44</td><td>31%</td><td>37</td><td>13</td></tr>
+        <tr><td class="td-date">02/06</td><td class="td-day">الثلاثاء</td><td class="td-census">143</td><td>46</td><td>45</td><td>31%</td><td>35</td><td>11</td></tr>
+        <tr><td class="td-date">03/06</td><td class="td-day">الأربعاء</td><td class="td-census">154</td><td>47</td><td>36</td><td>23%</td><td>38</td><td>9</td></tr>
+        <tr><td class="td-date">04/06</td><td class="td-day">الخميس</td><td class="td-census">147</td><td>56</td><td>63</td><td>43%</td><td>45</td><td>11</td></tr>
+        <tr><td class="td-date">05/06</td><td class="td-day">الجمعة</td><td class="td-census">148</td><td>51</td><td>50</td><td>34%</td><td>44</td><td>7</td></tr>
+        <tr><td class="td-date">06/06</td><td class="td-day">السبت</td><td class="td-census">170</td><td>55</td><td>33</td><td>19%</td><td>46</td><td>9</td></tr>
+        <tr><td class="td-date">07/06</td><td class="td-day">الأحد</td><td class="td-census">157</td><td>58</td><td>71</td><td>45%</td><td>52</td><td>6</td></tr>
+        <tr><td class="td-date">08/06</td><td class="td-day">الاثنين</td><td class="td-census">150</td><td>60</td><td>67</td><td>45%</td><td>50</td><td>10</td></tr>
+        <tr><td class="td-date">09/06</td><td class="td-day">الثلاثاء</td><td class="td-census">156</td><td>46</td><td>40</td><td>26%</td><td>42</td><td>4</td></tr>
+        <tr><td class="td-date">10/06</td><td class="td-day">الأربعاء</td><td class="td-census">139</td><td>39</td><td>56</td><td>40%</td><td>35</td><td>4</td></tr>
+        <tr><td class="td-date">11/06</td><td class="td-day">الخميس</td><td class="td-census">140</td><td>61</td><td>60</td><td>43%</td><td>52</td><td>9</td></tr>
+        <tr><td class="td-date">12/06</td><td class="td-day">الجمعة</td><td class="td-census">143</td><td>39</td><td>36</td><td>25%</td><td>34</td><td>5</td></tr>
+        <tr><td class="td-date">13/06</td><td class="td-day">السبت</td><td class="td-census">148</td><td>42</td><td>37</td><td>25%</td><td>37</td><td>5</td></tr>
+        <tr><td class="td-date">14/06</td><td class="td-day">الأحد</td><td class="td-census">142</td><td>52</td><td>58</td><td>41%</td><td>43</td><td>9</td></tr>
+        <tr><td class="td-date">15/06</td><td class="td-day">الاثنين</td><td class="td-census">134</td><td>38</td><td>46</td><td>34%</td><td>27</td><td>11</td></tr>
+        <tr style="background:rgba(0,198,167,0.05)"><td class="td-date">16/06</td><td class="td-day" style="color:var(--accent2)">الثلاثاء ★</td><td class="td-census">148</td><td>56</td><td>42</td><td>28%</td><td>131</td><td>17</td></tr>
+        <tr style="background:rgba(0,198,167,0.05)"><td class="td-date">17/06</td><td class="td-day" style="color:var(--accent2)">الأربعاء ★</td><td class="td-census">151</td><td>47</td><td>49</td><td>32%</td><td>134</td><td>17</td></tr>
+        <tr style="background:rgba(0,198,167,0.05)"><td class="td-date">18/06</td><td class="td-day" style="color:var(--accent2)">الخميس ★</td><td class="td-census">137</td><td>43</td><td>57</td><td>42%</td><td>113</td><td>24</td></tr>
+        <tr class="total-row"><td colspan="2">الإجمالي / متوسط</td><td>147.2</td><td>886</td><td>890</td><td>33.6%</td><td>—</td><td>—</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p style="font-size:0.78rem;color:var(--muted);">★ أيام جديدة (16–18 يونيو) — بيانات السعوديين لـ 16-18 تعكس الإشغال الكلي لا الدخول اليومي</p>
+</div>
+
+<!-- ===== CPR ===== -->
+<div class="tab-panel" id="tab-cpr">
+  <div class="kpi-grid">
+    <div class="kpi-card kpi-red"><div class="kpi-val">2</div><div class="kpi-label">إجمالي الوفيات</div><div class="kpi-sub">01/06 و 15/06</div></div>
+    <div class="kpi-card kpi-orange"><div class="kpi-val">3</div><div class="kpi-label">إجمالي CPR</div><div class="kpi-sub">خلال 18 يوم</div></div>
+    <div class="kpi-card kpi-green"><div class="kpi-val">1</div><div class="kpi-label">نجاة من CPR</div><div class="kpi-sub">13/06 — PER</div></div>
+    <div class="kpi-card kpi-red"><div class="kpi-val">0.23%</div><div class="kpi-label">نسبة الوفاة للدخول</div><div class="kpi-sub">2 من 886</div></div>
+  </div>
+
+  <div class="section-title">سجل CPR والوفيات</div>
+
+  <div class="cpr-card">
+    <div class="cpr-badge">
+      <div class="cpr-date">01/06<br>الاثنين</div>
+      <div class="cpr-outcome outcome-survived" style="margin-top:6px">نجاة — CPR</div>
+    </div>
+    <div class="cpr-info">
+      <strong>Post Cardiac Arrest</strong>
+      <p>العمر: 5 أيام | القسم: PER | جنسية: غير سعودية / أنثى</p>
+    </div>
+  </div>
+
+  <div class="cpr-card">
+    <div class="cpr-badge">
+      <div class="cpr-date">01/06<br>الاثنين</div>
+      <div class="cpr-outcome outcome-death" style="margin-top:6px">وفاة</div>
+    </div>
+    <div class="cpr-info">
+      <strong>وفاة — NICU</strong>
+      <p>السبب: 35 أسبوع، CS، GBS وعدوى CNS، فشل أعضاء متعدد (DNR) | القسم: NICU</p>
+    </div>
+  </div>
+
+  <div class="cpr-card">
+    <div class="cpr-badge">
+      <div class="cpr-date">13/06<br>السبت</div>
+      <div class="cpr-outcome outcome-survived" style="margin-top:6px">نجاة — CPR</div>
+    </div>
+    <div class="cpr-info">
+      <strong>Post Cardiac Arrest</strong>
+      <p>الوقت: 13:25 | العمر: 5 أيام | القسم: PER | جنسية: غير سعودية / أنثى</p>
+    </div>
+  </div>
+
+  <div class="cpr-card">
+    <div class="cpr-badge">
+      <div class="cpr-date">15/06<br>الاثنين</div>
+      <div class="cpr-outcome outcome-death" style="margin-top:6px">وفاة</div>
+    </div>
+    <div class="cpr-info">
+      <strong>Post Cardiac Arrest — NICU</strong>
+      <p>الوقت: 13:08 | العمر: يومان | القسم: NICU | جنسية: غير سعودية / أنثى</p>
+    </div>
+  </div>
+
+  <div class="alert" style="margin-top:16px;">
+    <div class="alert-title">ملاحظة</div>
+    <div class="alert-body">كلتا الوفاتين كانتا في <strong>NICU</strong> ومن فئة حديثي الولادة (أقل من 7 أيام). الحالة الأولى (1/6) مرتبطة بعدوى GBS وفشل أعضاء، والثانية (15/6) بعد إنعاش قلبي رئوي. <strong>نسبة الوفاة الإجمالية 0.23%</strong> من إجمالي الدخول. لا وفيات أو CPR في الفترة 16–18 يونيو.</div>
+  </div>
+</div>
+
+<!-- ===== FULL DATA ===== -->
+<div class="tab-panel" id="tab-fulldata">
+  <div class="section-title">البيانات الكاملة — 18 يوم</div>
+  <div class="tbl-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>التاريخ</th><th>اليوم</th><th>الإشغال</th><th>إشغال%</th>
+          <th>دخول</th><th>خروج</th><th>NSD</th><th>مواليد</th>
+          <th>إجهاض</th><th>IUFD</th><th>عمليات</th>
+          <th>OBS ER</th><th>PER</th><th>CPR</th><th>وفاة</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td class="td-date">01/06</td><td class="td-day">الاثنين</td><td class="td-census">142</td><td>47.3%</td><td>50</td><td>44</td><td>13</td><td>13</td><td>2</td><td>—</td><td>12</td><td>28</td><td>20</td><td>1</td><td>1</td></tr>
+        <tr><td class="td-date">02/06</td><td class="td-day">الثلاثاء</td><td class="td-census">143</td><td>47.7%</td><td>46</td><td>45</td><td>9</td><td>12</td><td>4</td><td>—</td><td>14</td><td>25</td><td>21</td><td>—</td><td>—</td></tr>
+        <tr><td class="td-date">03/06</td><td class="td-day">الأربعاء</td><td class="td-census">154</td><td>51.3%</td><td>47</td><td>36</td><td>12</td><td>12</td><td>2</td><td>1</td><td>8</td><td>30</td><td>13</td><td>—</td><td>—</td></tr>
+        <tr><td class="td-date">04/06</td><td class="td-day">الخميس</td><td class="td-census">147</td><td>49.0%</td><td>56</td><td>63</td><td>12</td><td>12</td><td>3</td><td>—</td><td>14</td><td>27</td><td>24</td><td>—</td><td>—</td></tr>
+        <tr><td class="td-date">05/06</td><td class="td-day">الجمعة</td><td class="td-census">148</td><td>49.3%</td><td>51</td><td>50</td><td>13</td><td>13</td><td>3</td><td>—</td><td>7</td><td>30</td><td>17</td><td>—</td><td>—</td></tr>
+        <tr><td class="td-date">06/06</td><td class="td-day">السبت</td><td class="td-census" style="color:var(--red)">170</td><td style="color:var(--red)">56.7%</td><td>55</td><td>33</td><td>5</td><td>5</td><td>1</td><td>—</td><td>7</td><td>39</td><td>16</td><td>—</td><td>—</td></tr>
+        <tr><td class="td-date">07/06</td><td class="td-day">الأحد</td><td class="td-census">157</td><td>52.3%</td><td>58</td><td>71</td><td>12</td><td>12</td><td>—</td><td>1</td><td>19</td><td>32</td><td>24</td><td>—</td><td>—</td></tr>
+        <tr><td class="td-date">08/06</td><td class="td-day">الاثنين</td><td class="td-census">150</td><td>50.0%</td><td>60</td><td>67</td><td>12</td><td>12</td><td>3</td><td>—</td><td>16</td><td>30</td><td>24</td><td>—</td><td>—</td></tr>
+        <tr><td class="td-date">09/06</td><td class="td-day">الثلاثاء</td><td class="td-census">156</td><td>52.0%</td><td>46</td><td>40</td><td>13</td><td>13</td><td>1</td><td>—</td><td>10</td><td>29</td><td>15</td><td>—</td><td>—</td></tr>
+        <tr><td class="td-date">10/06</td><td class="td-day">الأربعاء</td><td class="td-census">139</td><td>46.3%</td><td>39</td><td>56</td><td>8</td><td>8</td><td>1</td><td>—</td><td>14</td><td>27</td><td>10</td><td>—</td><td>—</td></tr>
+        <tr><td class="td-date">11/06</td><td class="td-day">الخميس</td><td class="td-census">140</td><td>46.7%</td><td>61</td><td>60</td><td>16</td><td>16</td><td>4</td><td>—</td><td>16</td><td>25</td><td>28</td><td>—</td><td>—</td></tr>
+        <tr><td class="td-date">12/06</td><td class="td-day">الجمعة</td><td class="td-census">143</td><td>47.7%</td><td>39</td><td>36</td><td>8</td><td>8</td><td>—</td><td>—</td><td>8</td><td>18</td><td>21</td><td>—</td><td>—</td></tr>
+        <tr><td class="td-date">13/06</td><td class="td-day">السبت</td><td class="td-census">148</td><td>49.3%</td><td>42</td><td>37</td><td>3</td><td>3</td><td>—</td><td>—</td><td>5</td><td>26</td><td>12</td><td>1</td><td>—</td></tr>
+        <tr><td class="td-date">14/06</td><td class="td-day">الأحد</td><td class="td-census">142</td><td>47.3%</td><td>52</td><td>58</td><td>13</td><td>18</td><td>5</td><td>—</td><td>19</td><td>33</td><td>19</td><td>—</td><td>—</td></tr>
+        <tr><td class="td-date">15/06</td><td class="td-day">الاثنين</td><td class="td-census">134</td><td>44.7%</td><td>38</td><td>46</td><td>10</td><td>7</td><td>1</td><td>—</td><td>9</td><td>21</td><td>16</td><td>1</td><td>1</td></tr>
+        <tr style="background:rgba(0,198,167,0.08)"><td class="td-date">16/06</td><td class="td-day" style="color:var(--accent2)">الثلاثاء ★</td><td class="td-census">148</td><td>49.3%</td><td>56</td><td>42</td><td>10</td><td>12</td><td>2</td><td>1</td><td>17</td><td>35</td><td>18</td><td>—</td><td>—</td></tr>
+        <tr style="background:rgba(0,198,167,0.08)"><td class="td-date">17/06</td><td class="td-day" style="color:var(--accent2)">الأربعاء ★</td><td class="td-census">151</td><td>50.3%</td><td>47</td><td>49</td><td>13</td><td>11</td><td>6</td><td>—</td><td>14</td><td>29</td><td>20</td><td>—</td><td>—</td></tr>
+        <tr style="background:rgba(0,198,167,0.08)"><td class="td-date">18/06</td><td class="td-day" style="color:var(--accent2)">الخميس ★</td><td class="td-census">137</td><td>45.7%</td><td>43</td><td>57</td><td>12</td><td>12</td><td>1</td><td>—</td><td>11</td><td>18</td><td>20</td><td>—</td><td>—</td></tr>
+        <tr class="total-row">
+          <td colspan="2">الإجمالي / متوسط</td>
+          <td>147.2</td><td>49.1%</td>
+          <td>886</td><td>890</td><td>194</td><td>199</td>
+          <td>39</td><td>3</td><td>220</td>
+          <td>502</td><td>338</td><td>3</td><td>2</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <p style="font-size:0.78rem;color:var(--muted);">★ أيام جديدة (16–18 يونيو 2026)</p>
+
+  <div class="section-title" style="margin-top:24px;">أبرز الملاحظات</div>
+  <div class="alert alert-red">
+    <div class="alert-title">ذروة السبت</div>
+    <div class="alert-body">السبت 6/6 سجّل <strong>170 مريض</strong> (56.7%) مع أدنى خروج في الفترة (33 فقط). السبت بشكل عام أعلى أيام الأسبوع إشغالاً بمتوسط <strong>159</strong>.</div>
+  </div>
+  <div class="alert alert-red">
+    <div class="alert-title">NICU تحت ضغط مستمر</div>
+    <div class="alert-body">إشغال <strong>89.2%</strong> طوال الفترة. أقرب الأقسام للاكتظاظ.</div>
+  </div>
+  <div class="alert alert-green">
+    <div class="alert-title">انخفاض الإشغال في 18/6</div>
+    <div class="alert-body">إشغال 18/6 بلغ <strong>137</strong> مع أعلى خروج يومي (57). يشير إلى تحسن في دوران الأسرة.</div>
+  </div>
+  <div class="alert alert-orange">
+    <div class="alert-title">OBS ER — التنويم من طوارئ النساء</div>
+    <div class="alert-body">إجمالي <strong>502 منوم</strong> في 18 يوم (27.9 / يوم). الذروة السبت 6/6 بـ <strong>39 منوماً</strong>.</div>
+  </div>
+</div>
+
+</div><!-- /content -->
+
+<div class="footer">
+  مستشفى الولادة والأطفال — تجمع حفر الباطن الصحي | الفترة: 1 — 18 يونيو 2026
+</div>
+
+</div><!-- /mainContent -->
+
+<script>
+function doLogin() {
+  var p = document.getElementById('pwInput').value;
+  if (p === '1234567') {
+    sessionStorage.setItem('auth','ok');
+    document.getElementById('loginScreen').style.display='none';
+    document.getElementById('mainContent').style.display='block';
+  } else {
+    document.getElementById('loginErr').style.display='block';
+  }
+}
+
+function showTab(name, el) {
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  el.classList.add('active');
+}
+
+// auto-login if session active
+if (sessionStorage.getItem('auth')==='ok') {
+  document.getElementById('loginScreen').style.display='none';
+  document.getElementById('mainContent').style.display='block';
+}
+</script>
+</body>
+</html>
