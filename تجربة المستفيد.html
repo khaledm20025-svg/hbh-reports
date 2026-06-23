@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ورشة تجربة المستفيد — مستشفى الولادة والأطفال</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap');
+  :root {
+    --green:#1a7a4a; --green-light:#2da865; --green-pale:#e8f5ee;
+    --green-mid:#c2e8d4; --text-dark:#1a2e22; --text-mid:#3d5a47;
+    --text-soft:#6b8c76; --bg:#f7faf8; --white:#ffffff;
+    --border:#d4e8dc; --accent:#f0a500; --accent-pale:#fff8e6;
+    --red-pale:#fff0f0; --red-border:#fcc;
+    --shadow:0 4px 24px rgba(26,122,74,.08);
+    --shadow-hover:0 8px 32px rgba(26,122,74,.15);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text-dark);height:100vh;overflow:hidden;}
+  .app{display:grid;grid-template-rows:auto 1fr auto;height:100vh;}
+
+  /* HEADER */
+  header{background:var(--white);border-bottom:2px solid var(--green-pale);padding:12px 32px;display:flex;align-items:center;justify-content:space-between;gap:16px;}
+  .hdr-title{font-size:14px;font-weight:700;color:var(--green);}
+  .hdr-sub{font-size:11px;color:var(--text-soft);margin-top:2px;}
+  .prog-wrap{flex:1;max-width:300px;background:var(--green-pale);border-radius:100px;height:6px;overflow:hidden;}
+  .prog-bar{height:100%;background:linear-gradient(90deg,var(--green),var(--green-light));border-radius:100px;transition:width .4s ease;}
+  .slide-counter{font-size:12px;color:var(--text-soft);font-weight:500;white-space:nowrap;}
+
+  /* MAIN */
+  main{overflow:hidden;position:relative;}
+  .slides-wrap{display:flex;height:100%;transition:transform .45s cubic-bezier(.4,0,.2,1);}
+  .slide{min-width:100%;height:100%;overflow-y:auto;padding:28px 44px;display:flex;flex-direction:column;align-items:flex-start;}
+  .slide::-webkit-scrollbar{width:4px;}
+  .slide::-webkit-scrollbar-thumb{background:var(--green-mid);border-radius:2px;}
+
+  /* COVER */
+  .slide-cover{background:linear-gradient(145deg,#f0faf5,#e0f5eb,#d0edd9);align-items:center;justify-content:center;text-align:center;}
+  .cover-badge{display:inline-block;background:var(--green-pale);color:var(--green);font-size:11px;font-weight:700;padding:5px 14px;border-radius:100px;margin-bottom:14px;border:1px solid var(--green-mid);}
+  .cover-title{font-size:36px;font-weight:800;color:var(--text-dark);line-height:1.25;margin-bottom:14px;max-width:580px;}
+  .cover-title span{color:var(--green);}
+  .cover-desc{font-size:15px;color:var(--text-mid);line-height:1.8;max-width:460px;margin-bottom:32px;}
+  .cover-pills{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;}
+  .cover-pill{background:var(--white);border:1px solid var(--border);color:var(--text-mid);font-size:12px;padding:7px 16px;border-radius:100px;font-weight:500;}
+
+  /* SECTION */
+  .slide-section{background:var(--green);align-items:center;justify-content:center;text-align:center;}
+  .sec-num{font-size:72px;font-weight:800;color:rgba(255,255,255,.1);line-height:1;margin-bottom:-16px;}
+  .sec-label{font-size:11px;font-weight:700;color:rgba(255,255,255,.55);text-transform:uppercase;letter-spacing:2px;margin-bottom:10px;}
+  .sec-title{font-size:32px;font-weight:800;color:var(--white);line-height:1.3;max-width:480px;}
+  .sec-sub{font-size:14px;color:rgba(255,255,255,.65);margin-top:10px;max-width:380px;}
+
+  /* CONTENT */
+  .eyebrow{font-size:11px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:2px;margin-bottom:6px;}
+  .slide-title{font-size:24px;font-weight:800;color:var(--text-dark);line-height:1.3;margin-bottom:5px;}
+  .slide-sub{font-size:13px;color:var(--text-soft);margin-bottom:22px;line-height:1.6;}
+
+  /* GRID */
+  .grid{display:grid;gap:12px;width:100%;}
+  .g2{grid-template-columns:repeat(2,1fr);}
+  .g3{grid-template-columns:repeat(3,1fr);}
+  .g4{grid-template-columns:repeat(4,1fr);}
+
+  /* CARD */
+  .card{background:var(--white);border:1px solid var(--border);border-radius:12px;padding:16px;transition:all .2s;}
+  .card:hover{border-color:var(--green-light);box-shadow:var(--shadow-hover);transform:translateY(-2px);}
+  .card-hl{background:var(--green-pale);border-color:var(--green-mid);}
+  .card-hl .ctitle{color:var(--green);}
+  .card-warn{background:var(--red-pale);border-color:var(--red-border);}
+  .card-accent{background:var(--accent-pale);border-color:#fde68a;}
+  .ctitle{font-size:13px;font-weight:700;color:var(--text-dark);margin-bottom:5px;}
+  .cbody{font-size:12px;color:var(--text-mid);line-height:1.7;}
+
+  /* STAT */
+  .stat{background:var(--white);border:1px solid var(--border);border-radius:12px;padding:20px;text-align:center;}
+  .stat-num{font-size:38px;font-weight:800;color:var(--green);line-height:1;margin-bottom:5px;}
+  .stat-lbl{font-size:12px;color:var(--text-mid);line-height:1.5;}
+
+  /* DOT LIST */
+  .dlist{display:flex;flex-direction:column;gap:8px;width:100%;}
+  .ditem{display:flex;align-items:flex-start;gap:10px;background:var(--white);border:1px solid var(--border);border-radius:9px;padding:10px 14px;}
+  .ddot{width:7px;height:7px;min-width:7px;background:var(--green);border-radius:50%;margin-top:6px;}
+  .dtext{font-size:12.5px;color:var(--text-mid);line-height:1.6;}
+  .dtext strong{color:var(--text-dark);}
+
+  /* TWO COL */
+  .tcol{display:grid;grid-template-columns:1fr 1fr;gap:16px;width:100%;}
+  .cbox{background:var(--white);border:1px solid var(--border);border-radius:12px;padding:18px;}
+  .cbox-title{font-size:13px;font-weight:700;color:var(--green);margin-bottom:12px;padding-bottom:8px;border-bottom:2px solid var(--green-pale);}
+
+  /* INFO BOX */
+  .ibox{width:100%;background:var(--green-pale);border:1px solid var(--green-mid);border-right:4px solid var(--green);border-radius:9px;padding:12px 16px;margin-top:14px;font-size:13px;color:var(--text-mid);line-height:1.7;}
+  .ibox strong{color:var(--green);}
+
+  /* WARN BOX */
+  .wbox{width:100%;background:var(--red-pale);border:1px solid var(--red-border);border-right:4px solid #e05555;border-radius:9px;padding:12px 16px;margin-top:14px;font-size:13px;color:#7a2222;line-height:1.7;}
+
+  /* SCENARIO */
+  .scenario{width:100%;background:var(--accent-pale);border:2px solid #fde68a;border-radius:12px;padding:18px 22px;margin-bottom:18px;}
+  .scenario-tag{font-size:11px;color:#92660a;font-weight:700;margin-bottom:6px;}
+  .scenario-text{font-size:14px;color:var(--text-dark);line-height:1.9;font-weight:500;}
+
+  /* SPIKES */
+  .spikes{display:flex;flex-direction:column;gap:8px;width:100%;}
+  .spike{display:flex;align-items:flex-start;gap:12px;background:var(--white);border:1px solid var(--border);border-radius:10px;padding:12px 16px;transition:all .2s;}
+  .spike:hover{border-color:var(--green);box-shadow:var(--shadow);}
+  .spike-letter{width:34px;height:34px;min-width:34px;background:var(--green);color:var(--white);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;}
+  .spike-title{font-size:13px;font-weight:700;color:var(--text-dark);margin-bottom:2px;}
+  .spike-desc{font-size:12px;color:var(--text-mid);line-height:1.6;}
+
+  /* TABLE */
+  .tbl{width:100%;border-collapse:collapse;border-radius:10px;overflow:hidden;box-shadow:var(--shadow);}
+  .tbl th{background:var(--green);color:var(--white);padding:10px 14px;font-size:12.5px;font-weight:700;text-align:right;}
+  .tbl td{padding:10px 14px;font-size:12.5px;color:var(--text-mid);border-bottom:1px solid var(--border);text-align:right;background:var(--white);line-height:1.6;}
+  .tbl tr:last-child td{border-bottom:none;}
+  .tbl tr:nth-child(even) td{background:var(--green-pale);}
+
+  /* REPEAT ITEM */
+  .rep-item{border-radius:8px;padding:8px 12px;font-size:12.5px;margin-bottom:5px;}
+  .rep-red{background:#fee;}
+  .rep-yellow{background:#fef9e7;}
+
+  /* FOOTER */
+  footer{background:var(--white);border-top:1px solid var(--border);padding:12px 32px;display:flex;align-items:center;justify-content:space-between;gap:12px;}
+  .nav-dots{display:flex;gap:5px;flex-wrap:wrap;max-width:380px;}
+  .ndot{width:7px;height:7px;border-radius:50%;background:var(--border);cursor:pointer;transition:all .2s;border:none;}
+  .ndot.active{background:var(--green);transform:scale(1.35);}
+  .ndot:hover{background:var(--green-light);}
+  .nav-btns{display:flex;gap:8px;}
+  .btn{padding:9px 22px;border-radius:9px;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:700;cursor:pointer;border:none;transition:all .2s;}
+  .btn-out{background:transparent;border:1.5px solid var(--border);color:var(--text-mid);}
+  .btn-out:hover{border-color:var(--green);color:var(--green);}
+  .btn-pri{background:var(--green);color:var(--white);}
+  .btn-pri:hover{background:var(--green-light);box-shadow:var(--shadow-hover);}
+  .btn:disabled{opacity:.35;cursor:not-allowed;}
+  .kbd-hint{font-size:11px;color:var(--text-soft);}
+  .kbd{display:inline-block;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:1px 5px;font-size:10px;color:var(--text-mid);}
+</style>
+</head>
+<body>
+
+<style>
+  #pw-screen {
+    position: fixed; inset: 0; background: linear-gradient(145deg,#f0faf5,#e0f5eb);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 9999; font-family: 'Tajawal', sans-serif;
+  }
+  .pw-box {
+    background: #fff; border-radius: 20px; padding: 40px 48px;
+    box-shadow: 0 8px 40px rgba(26,122,74,.15); text-align: center; max-width: 380px; width: 90%;
+  }
+  .pw-logo {
+    width: 56px; height: 56px; background: #1a7a4a; border-radius: 16px;
+    margin: 0 auto 20px; display: flex; align-items: center; justify-content: center;
+    font-size: 26px; color: #fff; font-weight: 800;
+  }
+  .pw-title { font-size: 18px; font-weight: 800; color: #1a2e22; margin-bottom: 6px; }
+  .pw-sub { font-size: 13px; color: #6b8c76; margin-bottom: 24px; line-height: 1.6; }
+  .pw-input {
+    width: 100%; padding: 12px 16px; border: 1.5px solid #d4e8dc; border-radius: 10px;
+    font-family: 'Tajawal', sans-serif; font-size: 15px; text-align: center;
+    letter-spacing: 4px; outline: none; transition: border .2s; margin-bottom: 12px;
+  }
+  .pw-input:focus { border-color: #1a7a4a; }
+  .pw-btn {
+    width: 100%; padding: 12px; background: #1a7a4a; color: #fff; border: none;
+    border-radius: 10px; font-family: 'Tajawal', sans-serif; font-size: 15px;
+    font-weight: 700; cursor: pointer; transition: background .2s;
+  }
+  .pw-btn:hover { background: #2da865; }
+  .pw-err { color: #c0392b; font-size: 12px; margin-top: 8px; display: none; }
+  .pw-footer { font-size: 11px; color: #6b8c76; margin-top: 20px; }
+</style>
+
+<div id="pw-screen">
+  <div class="pw-box">
+    <div class="pw-logo">ت</div>
+    <div class="pw-title">ورشة تجربة المستفيد</div>
+    <div class="pw-sub">تجمع حفر الباطن الصحي<br>مستشفى الولادة والأطفال</div>
+    <input class="pw-input" type="password" id="pwInput" placeholder="كلمة المرور" onkeydown="if(event.key==='Enter')checkPw()">
+    <button class="pw-btn" onclick="checkPw()">دخول</button>
+    <div class="pw-err" id="pwErr">كلمة المرور غير صحيحة</div>
+    <div class="pw-footer">للمستخدمين المصرّح لهم فقط</div>
+  </div>
+</div>
+
+<script>
+  function checkPw() {
+    const val = document.getElementById('pwInput').value;
+    if (val === '123456') {
+      document.getElementById('pw-screen').style.display = 'none';
+    } else {
+      document.getElementById('pwErr').style.display = 'block';
+      document.getElementById('pwInput').value = '';
+      document.getElementById('pwInput').focus();
+    }
+  }
+</script>
+
+<div class="app">
+
+<header>
+  <div>
+    <div class="hdr-title">ورشة تجربة المستفيد — موظفو تجربة المستفيد</div>
+    <div class="hdr-sub">تجمع حفر الباطن الصحي — مستشفى الولادة والأطفال</div>
+  </div>
+  <div class="prog-wrap"><div class="prog-bar" id="progBar" style="width:5%"></div></div>
+  <div class="slide-counter" id="slideCounter">1 / 20</div>
+</header>
+
+<main>
+<div class="slides-wrap" id="slidesWrap">
+
+<!-- 1: COVER -->
+<div class="slide slide-cover">
+  <div class="cover-badge">ورشة عمل تدريبية</div>
+  <h1 class="cover-title">دورك في تجربة المريض<br><span>من الجولة إلى الأثر</span></h1>
+  <p class="cover-desc">ورشة موجّهة لموظفي تجربة المستفيد — تربط بين المهارات العملية وواقع عملكم اليومي في المستشفى</p>
+  <div class="cover-pills">
+    <span class="cover-pill">كيف تبني ثقة المريض</span>
+    <span class="cover-pill">كيف تدير الموقف الصعب</span>
+    <span class="cover-pill">كيف تحوّل الشكوى لفرصة</span>
+    <span class="cover-pill">من واقع جولاتنا الميدانية</span>
+  </div>
+</div>
+
+<!-- 2: SECTION 1 -->
+<div class="slide slide-section">
+  <div class="sec-num">01</div>
+  <div class="sec-label">المحور الأول</div>
+  <h2 class="sec-title">كيف تبني ثقة المريض من اللحظة الأولى؟</h2>
+  <p class="sec-sub">الثقة لا تُبنى بالكلام — تُبنى بما يراه المريض ويشعر به</p>
+</div>
+
+<!-- 3: ما الذي يجعل المريض يثق بك؟ -->
+<div class="slide">
+  <div class="eyebrow">المحور الأول</div>
+  <h2 class="slide-title">ما الذي يجعل المريض يثق بك كموظف تجربة مستفيد؟</h2>
+  <p class="slide-sub">المريض يحكم عليك في الثواني الأولى — هذه العوامل تصنع انطباعه</p>
+  <div class="grid g2" style="margin-bottom:14px">
+    <div class="card card-hl">
+      <div class="ctitle">تظهر كفؤاً وواثقاً</div>
+      <div class="cbody">تعريفك بنفسك بوضوح، معرفتك بالإجراءات، وسرعة تحركك — تُشعره أنك قادر على مساعدته فعلاً</div>
+    </div>
+    <div class="card card-hl">
+      <div class="ctitle">تلتزم بما تقوله</div>
+      <div class="cbody">إذا قلت "سأرد عليك خلال 10 دقائق" — التزم. الوعد المكسور يهدم الثقة أسرع من أي خطأ آخر</div>
+    </div>
+    <div class="card card-hl">
+      <div class="ctitle">تكون صادقاً وشفافاً</div>
+      <div class="cbody">لا تعده بما لا تستطيع تقديمه. قل له ما تعرفه وما لا تعرفه — الصدق يبني، التهرب يهدم</div>
+    </div>
+    <div class="card card-hl">
+      <div class="ctitle">تتواصل بشكل يفهمه</div>
+      <div class="cbody">تكلم بلغة بسيطة، أنصت أكثر مما تتكلم، وتأكد أنه فهم — وليس فقط أنك شرحت</div>
+    </div>
+  </div>
+  <div class="ibox"><strong>تذكّر:</strong> المريض في المستشفى يشعر بضعف وقلق — موظف تجربة المستفيد هو أول من يشعره بأنه في أيدٍ أمينة</div>
+</div>
+
+<!-- 4: ما يشعر به المريض عند التواصل معك -->
+<div class="slide">
+  <div class="eyebrow">المحور الأول</div>
+  <h2 class="slide-title">ما الذي يبحث عنه المريض في تعاملك معه؟</h2>
+  <p class="slide-sub">أربعة احتياجات أساسية — لو أشبعتها، أشبعت تجربته كاملة</p>
+  <div class="grid g2">
+    <div class="card">
+      <div class="ctitle">أن يُسمع</div>
+      <div class="cbody">المريض يريد أن يتكلم وأنت تستمع فعلاً — لا أن تنتظر دورك للكلام. الإنصات الحقيقي يُشعره بالتقدير</div>
+    </div>
+    <div class="card">
+      <div class="ctitle">أن يُفهم</div>
+      <div class="cbody">يريد أن تتعاطف معه — لا أن تُقيّم موقفه. ضع نفسك في مكانه: طفله مريض، هو خائف، ويريد أجوبة</div>
+    </div>
+    <div class="card">
+      <div class="ctitle">أن يُشرح له</div>
+      <div class="cbody">الغموض يُولّد القلق. المريض الذي يفهم ما يحدث يتعاون أكثر ويشتكي أقل — اشرح دائماً</div>
+    </div>
+    <div class="card">
+      <div class="ctitle">أن يُستجاب له</div>
+      <div class="cbody">لا يكفي أن تسجّل ملاحظته — يريد أن يرى تحركاً. الاستجابة الفورية هي أقوى رسالة ثقة تقدمها</div>
+    </div>
+  </div>
+  <div class="ibox"><strong>من واقع بلاغاتنا:</strong> معظم الشكاوى ليست عن غياب الكفاءة الطبية — بل عن <strong>غياب التواصل والاستجابة.</strong> هذا بالضبط ما يملك موظف تجربة المستفيد تغييره</div>
+</div>
+
+<!-- 5: ما يهدم الثقة -->
+<div class="slide">
+  <div class="eyebrow">المحور الأول</div>
+  <h2 class="slide-title">سلوكيات تهدم الثقة فوراً — راجع نفسك</h2>
+  <p class="slide-sub">هذه تحدث يومياً بدون قصد — لكن أثرها على المريض عميق</p>
+  <div class="grid g2">
+    <div class="card card-warn">
+      <div class="ctitle" style="color:#c0392b">مقاطعة المريض قبل أن ينهي</div>
+      <div class="cbody">رسالة ضمنية: "وقتي أهم من مشكلتك". دعه يكمل حديثه دائماً</div>
+    </div>
+    <div class="card card-warn">
+      <div class="ctitle" style="color:#c0392b">الإسراع في المحادثة</div>
+      <div class="cbody">المريض يشعر أنك تريد الانتهاء منه. خصّص له وقتاً حقيقياً ولو كان قصيراً</div>
+    </div>
+    <div class="card card-warn">
+      <div class="ctitle" style="color:#c0392b">تجاهل مشاعره والتركيز على الإجراء فقط</div>
+      <div class="cbody">المريض الغاضب لا يحتاج استمارة — يحتاج أولاً أن يُسمع ويُفهم</div>
+    </div>
+    <div class="card card-warn">
+      <div class="ctitle" style="color:#c0392b">الوعد بما لا تستطيع تنفيذه</div>
+      <div class="cbody">"سيُصلح التكييف الآن" ثم لا يُصلح — يُسبب إحباطاً مضاعفاً</div>
+    </div>
+    <div class="card card-warn">
+      <div class="ctitle" style="color:#c0392b">تسجيل الملاحظة دون متابعة</div>
+      <div class="cbody">المريض يرى أنك "تكتب وتمشي" — المتابعة حتى الحل هي جوهر الدور</div>
+    </div>
+    <div class="card card-warn">
+      <div class="ctitle" style="color:#c0392b">الدفاع عن المستشفى أمام المريض</div>
+      <div class="cbody">دورك ليس الدفاع — دورك الإنصات وإيجاد الحل. الدفاع يُشعله لا يُهدئه</div>
+    </div>
+  </div>
+</div>
+
+<!-- 6: لغة الجسد -->
+<div class="slide">
+  <div class="eyebrow">المحور الأول</div>
+  <h2 class="slide-title">جسدك يتكلم قبل لسانك</h2>
+  <p class="slide-sub">موظف تجربة المستفيد يتعامل وجهاً لوجه — ما تُظهره بجسدك يساوي ما تقوله</p>
+  <div class="grid g3" style="margin-bottom:14px">
+    <div class="card card-hl">
+      <div class="ctitle">التواصل البصري</div>
+      <div class="cbody">انظر إليه عند الكلام — لا إلى الاستمارة أو الجوال. نظرتك تقول "أنا هنا معك"</div>
+    </div>
+    <div class="card card-hl">
+      <div class="ctitle">تعبير الوجه</div>
+      <div class="cbody">وجه متعاطف ومهتم — تجنب الوجه الجامد أو المشغول. المريض يقرأ وجهك قبل كلامك</div>
+    </div>
+    <div class="card card-hl">
+      <div class="ctitle">وضعية الجسم</div>
+      <div class="cbody">انحنِ قليلاً نحوه، استقبله بجسمك — لا تتكئ على الجدار أو تُوجّه جسمك للخروج</div>
+    </div>
+    <div class="card card-hl">
+      <div class="ctitle">المسافة المناسبة</div>
+      <div class="cbody">قريب بما يكفي للإشعار بالاهتمام — بعيد بما يحفظ خصوصيته. اقرأ راحته</div>
+    </div>
+    <div class="card card-hl">
+      <div class="ctitle">الإيماءات</div>
+      <div class="cbody">الإيماء برأسك عند الاستماع يُشعره أنك تتابع — إيماءات هادئة وطبيعية</div>
+    </div>
+    <div class="card card-hl">
+      <div class="ctitle">الصوت ونبرته</div>
+      <div class="cbody">صوت هادئ وواضح — لا صراخ ولا همس. نبرتك تحدد إن كان يشعر بالاحترام أم لا</div>
+    </div>
+  </div>
+  <div class="ibox"><strong>القاعدة:</strong> إذا كان جسدك يقول "أنا مشغول" بينما لسانك يقول "تفضل" — المريض سيصدّق جسدك</div>
+</div>
+
+<!-- 7: SECTION 2 -->
+<div class="slide slide-section">
+  <div class="sec-num">02</div>
+  <div class="sec-label">المحور الثاني</div>
+  <h2 class="sec-title">كيف تدير المواقف الصعبة؟</h2>
+  <p class="sec-sub">المريض الغاضب، الذوي المتوترون، الأخبار الصعبة — هذه مهاراتك الأساسية</p>
+</div>
+
+<!-- 8: مشاعر المريض -->
+<div class="slide">
+  <div class="eyebrow">المحور الثاني</div>
+  <h2 class="slide-title">قبل أن تتحدث — افهم كيف يشعر</h2>
+  <p class="slide-sub">موظف تجربة المستفيد يواجه هذه المشاعر يومياً — من يفهمها يتعامل معها بشكل صحيح</p>
+  <div class="grid g3">
+    <div class="card">
+      <div class="ctitle">الخوف والقلق</div>
+      <div class="cbody">من التشخيص، من العملية، من المجهول — المريض الخائف يحتاج وضوحاً وطمأنينة لا إجراءات</div>
+    </div>
+    <div class="card">
+      <div class="ctitle">الغضب والإحباط</div>
+      <div class="cbody">غالباً وراءه خوف أو إحساس بعدم الاهتمام — لا تواجهه بالدفاع، واجهه بالإنصات</div>
+    </div>
+    <div class="card">
+      <div class="ctitle">فقدان السيطرة</div>
+      <div class="cbody">المريض اعتاد أن يتخذ قراراته — في المستشفى يشعر أن قراراته بيد الآخرين. أشركه دائماً</div>
+    </div>
+    <div class="card">
+      <div class="ctitle">الحزن والأسى</div>
+      <div class="cbody">عند تلقي أخبار صعبة — لا تتسرع في الحلول. امنحه مساحة يعبّر فيها أولاً</div>
+    </div>
+    <div class="card">
+      <div class="ctitle">الإنكار والتجنب</div>
+      <div class="cbody">رفض قبول الواقع — تعامل بصبر دون ضغط، الإنكار مرحلة طبيعية وتحتاج وقتاً</div>
+    </div>
+    <div class="card">
+      <div class="ctitle">الأمل والتعلق</div>
+      <div class="cbody">المريض المتعلق بالأمل يحتاج صدقاً ولطفاً في آن — لا تكسر أمله ولا تعطه وعوداً مجوفة</div>
+    </div>
+  </div>
+  <div class="ibox"><strong>الخلاصة:</strong> كل سلوك صعب من المريض هو رسالة — مهمتك أن تقرأ الرسالة لا أن تردّ على السلوك</div>
+</div>
+
+<!-- 9: المريض الغاضب خطوة بخطوة -->
+<div class="slide">
+  <div class="eyebrow">المحور الثاني</div>
+  <h2 class="slide-title">المريض الغاضب — ست خطوات عملية</h2>
+  <p class="slide-sub">موقف تواجهه كل يوم — هذا الترتيب يُحوّل الموقف من مواجهة إلى حوار</p>
+  <div class="grid g2">
+    <div class="card card-hl">
+      <div class="ctitle">1 — تمسّك بهدوئك أولاً</div>
+      <div class="cbody">إذا فقدت هدوءك، فقدت الموقف. تنفس، ابتعد عن الدفاعية، وتذكر أن غضبه ليس عليك شخصياً</div>
+    </div>
+    <div class="card card-hl">
+      <div class="ctitle">2 — اعترف بمشاعره فوراً</div>
+      <div class="cbody">"أفهم أنك منزعج وهذا مفهوم تماماً" — هذه الجملة وحدها تخفّض حرارة الموقف بشكل ملحوظ</div>
+    </div>
+    <div class="card card-hl">
+      <div class="ctitle">3 — أنصت دون مقاطعة</div>
+      <div class="cbody">دعه يُفرغ ما عنده كاملاً. لا تُسرع بالحلول. الإنصات الكامل هو نصف الحل</div>
+    </div>
+    <div class="card card-hl">
+      <div class="ctitle">4 — لا تدافع ولا تبرر</div>
+      <div class="cbody">"أنت لا تعرف الضغط الذي نعيشه" — هذه الجملة تشعل الموقف. ركّز على فهمه لا على تبرير نفسك</div>
+    </div>
+    <div class="card card-hl">
+      <div class="ctitle">5 — اسأله ما الذي يحتاجه</div>
+      <div class="cbody">"ما الذي تحتاجه منا الآن؟" — هذا السؤال يحوّله من موقف هجوم إلى حوار بناء</div>
+    </div>
+    <div class="card card-hl">
+      <div class="ctitle">6 — تحرّك وأخبره بما ستفعله</div>
+      <div class="cbody">"سأتصل بالقسم الآن وأُعلمك خلال 5 دقائق" — التحرك الفوري مع إبلاغه هو ما يُغيّر شعوره</div>
+    </div>
+  </div>
+</div>
+
+<!-- 11: بناء المحادثة -->
+<div class="slide">
+  <div class="eyebrow">المحور الثاني</div>
+  <h2 class="slide-title">كيف تبني المحادثة الصعبة — ثلاث مراحل</h2>
+  <p class="slide-sub">بناء المحادثة بشكل صحيح يحدد نتيجتها — موظف تجربة المستفيد يقود المحادثة لا يتبعها</p>
+  <div class="grid g3" style="margin-bottom:14px">
+    <div class="card card-hl">
+      <div class="ctitle">الافتتاح — ابنِ الجسر أولاً</div>
+      <div class="cbody">
+        عرّف بنفسك بوضوح<br>
+        اختر مكاناً مناسباً وهادئاً<br>
+        ابدأ بجملة تُشعره أنك معه<br>
+        لا تقفز للمشكلة مباشرة
+      </div>
+    </div>
+    <div class="card">
+      <div class="ctitle">المناقشة — أنصت ثم تكلم</div>
+      <div class="cbody">
+        اجمع المعلومات قبل أن تعطيها<br>
+        اعترف بالمشاعر دائماً<br>
+        قدّم المعلومة ببساطة<br>
+        تجنب الاستعجال في الحلول
+      </div>
+    </div>
+    <div class="card">
+      <div class="ctitle">الاختتام — لا تتركه معلقاً</div>
+      <div class="cbody">
+        لخّص ما تم الاتفاق عليه<br>
+        حدد الخطوة التالية بوضوح<br>
+        أخبره من يتابع معه ومتى<br>
+        اتركه بشعور أن شيئاً تحرك
+      </div>
+    </div>
+  </div>
+  <div class="ibox"><strong>الصدق مع التعاطف:</strong> قل الحقيقة دائماً — لكن قلها بأسلوب يُشعره باهتمامك. الصدق بدون تعاطف يُجرح، والتعاطف بدون صدق لا يُفيد</div>
+</div>
+
+<!-- 12: SECTION 3 -->
+<div class="slide slide-section">
+  <div class="sec-num">03</div>
+  <div class="sec-label">المحور الثالث</div>
+  <h2 class="sec-title">كيف تحوّل الشكوى إلى فرصة؟</h2>
+  <p class="sec-sub">الشكوى ليست مشكلة — هي معلومة ثمينة لو أُديرت بشكل صحيح</p>
+</div>
+
+<!-- 13: لماذا يشتكون -->
+<div class="slide">
+  <div class="eyebrow">المحور الثالث</div>
+  <h2 class="slide-title">لماذا يشتكي المريض؟ — فهم الجذر يُسهّل الحل</h2>
+  <p class="slide-sub">معظم الشكاوى تتكرر لأننا نعالج الأعراض لا الأسباب — هذه هي الأسباب الحقيقية</p>
+  <div class="grid g3">
+    <div class="card">
+      <div class="ctitle">لم يُسمع</div>
+      <div class="cbody">المريض الذي يشعر أن أحداً لا يستمع إليه يتحول إلى بلاغ — الإنصات الحقيقي يمنع الكثير من الشكاوى</div>
+    </div>
+    <div class="card">
+      <div class="ctitle">لم يُشرح له</div>
+      <div class="cbody">الغموض يُولّد الخوف، والخوف يُولّد الشكوى — المريض الذي يفهم ما يحدث يصبر أكثر</div>
+    </div>
+    <div class="card">
+      <div class="ctitle">انتظر طويلاً</div>
+      <div class="cbody">الانتظار المجهول المدة أصعب من الانتظار الطويل المعروف — "ستنتظر 30 دقيقة" أفضل من الصمت</div>
+    </div>
+    <div class="card">
+      <div class="ctitle">واجه سلوكاً غير لائق</div>
+      <div class="cbody">كلمة فظة، وجه عابس، تجاهل — هذه تُسبب بلاغات أكثر مما تتخيل وتضر بسمعة المستشفى</div>
+    </div>
+    <div class="card">
+      <div class="ctitle">المشكلة لم تُحل</div>
+      <div class="cbody">التكييف المعطل ثلاث مرات بدون حل، قفل الباب المكسور يومين — التكرار يُحوّل ملاحظة إلى أزمة</div>
+    </div>
+    <div class="card">
+      <div class="ctitle">شعر بعدم الاهتمام</div>
+      <div class="cbody">حتى لو حُلّت مشكلته، إذا شعر أنك تعاملت معه كرقم لا كإنسان — سيشتكي. الاهتمام الحقيقي يُفرق</div>
+    </div>
+  </div>
+</div>
+
+<!-- 14: الفرق بين الشكوى والملاحظة -->
+<div class="slide">
+  <div class="eyebrow">المحور الثالث</div>
+  <h2 class="slide-title">الشكوى والملاحظة البنّاءة — ما الفرق؟</h2>
+  <p class="slide-sub">موظف تجربة المستفيد يتعامل مع النوعين يومياً — فهم الفرق يحدد أسلوب الاستجابة</p>
+  <table class="tbl" style="margin-bottom:14px">
+    <thead>
+      <tr><th>المعيار</th><th>الملاحظة البنّاءة</th><th>الشكوى</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>ما الهدف؟</strong></td>
+        <td>تحسين الخدمة وتطويرها</td>
+        <td>التعبير عن استياء والمطالبة بحل</td>
+      </tr>
+      <tr>
+        <td><strong>ما النبرة؟</strong></td>
+        <td>متوازنة، تركز على ما يمكن تحسينه</td>
+        <td>غالباً انفعالية أو سلبية</td>
+      </tr>
+      <tr>
+        <td><strong>ما الاستجابة المطلوبة؟</strong></td>
+        <td>تطوير وتحسين مستمر</td>
+        <td>حل فوري ومتابعة سريعة</td>
+      </tr>
+      <tr>
+        <td><strong>ما الأثر؟</strong></td>
+        <td>تحسين على المدى البعيد</td>
+        <td>إرضاء المريض واسترداد ثقته</td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="ibox"><strong>تذكّر:</strong> كلتاهما قيّمة لموظف تجربة المستفيد — الشكوى تحتاج حلاً فورياً، والملاحظة البنّاءة تحتاج توثيقاً ومتابعة للتطوير</div>
+</div>
+
+<!-- 15: فوائد معالجة الشكاوى -->
+<div class="slide">
+  <div class="eyebrow">المحور الثالث</div>
+  <h2 class="slide-title">لماذا معالجة الشكوى بشكل صحيح تصب في مصلحتك؟</h2>
+  <p class="slide-sub">الشكوى المُعالجة بشكل صحيح تُحوّل المريض المستاء إلى مريض وفيّ</p>
+  <div class="grid g3" style="margin-bottom:14px">
+    <div class="card card-hl">
+      <div class="ctitle">ترفع رضا المريض</div>
+      <div class="cbody">المريض الذي يشعر أن شكواه أُخذت بجدية يخرج بانطباع إيجابي — حتى لو كانت تجربته صعبة</div>
+    </div>
+    <div class="card card-hl">
+      <div class="ctitle">تمنع التصعيد</div>
+      <div class="cbody">الشكوى التي تُحل في 10 دقائق لا تصبح بلاغاً رسمياً — الاستجابة السريعة تقطع دورة التصعيد</div>
+    </div>
+    <div class="card card-hl">
+      <div class="ctitle">تحسّن سلامة المريض</div>
+      <div class="cbody">الشكاوى تكشف مخاطر خفية — التكييف المعطل، النظافة، الأدوية الناقصة. معالجتها تحمي الجميع</div>
+    </div>
+    <div class="card card-hl">
+      <div class="ctitle">تُقوّي التواصل الداخلي</div>
+      <div class="cbody">كل شكوى تحل يُبنى فيها جسر بين موظف تجربة المستفيد والقسم المعني — التعاون يتطور مع الوقت</div>
+    </div>
+    <div class="card card-hl">
+      <div class="ctitle">تُطوّر الخدمة</div>
+      <div class="cbody">الشكاوى المتكررة تكشف فجوات حقيقية في الخدمة — توثيقها وتحليلها يقود لتحسينات ملموسة</div>
+    </div>
+    <div class="card card-hl">
+      <div class="ctitle">تبني الولاء</div>
+      <div class="cbody">المريض الذي يشعر أن المستشفى اهتم بشكواه يثق به أكثر ويُرشّحه لغيره</div>
+    </div>
+  </div>
+</div>
+
+<!-- 16: SECTION 4 — DATA 937 -->
+<div class="slide slide-section">
+  <div class="sec-num">04</div>
+  <div class="sec-label">من واقع مستشفانا</div>
+  <h2 class="sec-title">ماذا يقول مرضانا عنّا؟</h2>
+  <p class="sec-sub">أرقام وملاحظات حقيقية من بلاغات المستفيدين وجولات تجربة المستفيد</p>
+</div>
+
+<!-- 17: بلاغات 937 -->
+<div class="slide">
+  <div class="eyebrow">من واقع بلاغات المستفيدين</div>
+  <h2 class="slide-title">ما الذي يشتكي منه مرضانا؟</h2>
+  <p class="slide-sub">هذه الأنواع هي أكثر ما يصل إلينا من بلاغات — قراءتها تحدد أين نركّز</p>
+  <div class="tcol" style="margin-bottom:14px">
+    <div class="cbox">
+      <div class="cbox-title">أبرز أنواع البلاغات الواردة</div>
+      <div class="dlist">
+        <div class="ditem"><div class="ddot"></div><div class="dtext"><strong>رعاية طبية دون المستوى</strong> — الأعلى تكراراً</div></div>
+        <div class="ditem"><div class="ddot"></div><div class="dtext"><strong>مشكلات التكييف والتهوية</strong></div></div>
+        <div class="ditem"><div class="ddot"></div><div class="dtext"><strong>نقص دواء</strong></div></div>
+        <div class="ditem"><div class="ddot"></div><div class="dtext"><strong>مشكلات استقبال المريض</strong></div></div>
+        <div class="ditem"><div class="ddot"></div><div class="dtext"><strong>مشكلات المواعيد</strong></div></div>
+        <div class="ditem"><div class="ddot"></div><div class="dtext"><strong>سلوك غير لائق</strong></div></div>
+      </div>
+    </div>
+    <div class="cbox" style="background:var(--green-pale);border-color:var(--green-mid)">
+      <div class="cbox-title">ما الذي تخبرنا به هذه البلاغات؟</div>
+      <div style="font-size:13px;color:var(--text-mid);line-height:1.9;margin-top:6px">
+        معظم البلاغات تتعلق بـ <strong>التواصل والاستجابة</strong> — لا بغياب الكفاءة الطبية.<br><br>
+        المريض لا يطلب المستحيل — يطلب أن <strong>يُسمع ويُشرح له ويُستجاب له بسرعة.</strong><br><br>
+        هذا بالضبط ما يملك موظف تجربة المستفيد تغييره.
+      </div>
+    </div>
+  </div>
+  <div class="ibox"><strong>الوردية المسائية</strong> تستقبل الجزء الأكبر من البلاغات — الحضور الفعّال مسائياً يحدث فرقاً ملموساً في الأرقام</div>
+</div>
+
+<!-- 18: جولات الميدان -->
+<div class="slide">
+  <div class="eyebrow">من واقع جولات تجربة المستفيد</div>
+  <h2 class="slide-title">ما الذي رصدناه في جولاتنا الميدانية؟</h2>
+  <p class="slide-sub">ملاحظات رصدها موظفو تجربة المستفيد أثناء جولاتهم — هذا ما يعيشه مرضانا يومياً</p>
+  <div class="dlist">
+    <div class="ditem"><div class="ddot"></div><div class="dtext">الأعلى تكراراً في جميع الأقسام — <strong>مشكلات التكييف والصيانة</strong> تؤثر مباشرة على راحة المريض وذويه</div></div>
+    <div class="ditem"><div class="ddot"></div><div class="dtext"><strong>تأخير استجابة الطاقم التمريضي</strong>، أسلوب غير لائق، عدم لبس القفاز — تؤثر على ثقة المريض وشعوره بالأمان</div></div>
+    <div class="ditem"><div class="ddot"></div><div class="dtext"><strong>مشكلات التغذية</strong> — أكل بارد، وجبات غير مناسبة للحالة، تأخير الوجبات — تفاصيل صغيرة بأثر كبير على الرضا</div></div>
+    <div class="ditem"><div class="ddot"></div><div class="dtext"><strong>طلبات طبية وإجراءات</strong> — انتظار الطبيب، استفسارات التحاليل، إجراءات المرافقة — المريض يحتاج معلومة واضحة وسريعة</div></div>
+    <div class="ditem"><div class="ddot"></div><div class="dtext"><strong>نقص الأغطية والمستلزمات</strong> — مفارش تُستخدم بدلاً من الأغطية — تمس كرامة المريض مباشرة</div></div>
+    <div class="ditem"><div class="ddot"></div><div class="dtext"><strong>ملاحظات النظافة وكراسي المرافق</strong> — تجربة المريض لا تشمله وحده بل تشمل من معه</div></div>
+  </div>
+</div>
+
+<!-- 19: التكرار -->
+<div class="slide">
+  <div class="eyebrow">من واقع جولاتنا — درس مهم</div>
+  <h2 class="slide-title">المشكلة التي لم تُحل — التكرار يكلّفنا</h2>
+  <p class="slide-sub">عندما لا تُعالج المشكلة من أول مرة، تتضاعف وتتحول من ملاحظة إلى أزمة</p>
+  <div class="grid g2" style="margin-bottom:14px">
+    <div class="card" style="border:2px solid #e05555">
+      <div class="ctitle" style="color:#c0392b">غرفة الولادة — نقص الأغطية</div>
+      <div style="margin-top:8px">
+        <div class="rep-item rep-red">تكرار 1 — المريضات يستخدمن المفارش كأغطية</div>
+        <div class="rep-item rep-red">تكرار 2 — نفس اليوم التالي، لم تُحل</div>
+        <div class="rep-item rep-red">تكرار 3 — الشراشف بدلاً من الأغطية</div>
+        <div class="wbox" style="margin-top:8px">لماذا لم تُحل من المرة الأولى؟ من المسؤول عن المتابعة؟</div>
+      </div>
+    </div>
+    <div class="card" style="border:2px solid #d4a000">
+      <div class="ctitle" style="color:#92660a">قفل باب الغرفة — تنويم الأطفال</div>
+      <div style="margin-top:8px">
+        <div class="rep-item rep-yellow">تكرار 1 — الصباح: غرفة تحتاج صيانة</div>
+        <div class="rep-item rep-yellow">تكرار 2 — مساء نفس اليوم: لم تُصلح</div>
+        <div class="rep-item rep-yellow">تكرار 3 — اليوم التالي: نفس المشكلة</div>
+        <div class="wbox" style="margin-top:8px">كيف يشعر المريض عندما يرى أن شكواه لم تُؤخذ بجدية؟</div>
+      </div>
+    </div>
+  </div>
+  <div class="ibox" style="font-size:13.5px"><strong>الدرس الأهم:</strong> دور موظف تجربة المستفيد لا ينتهي عند تسجيل الملاحظة — بل يمتد للمتابعة حتى الحل الفعلي. <strong>الملاحظة بدون متابعة = إحباط مضاعف للمريض</strong></div>
+</div>
+
+<!-- 20: تمرين تطبيقي -->
+<div class="slide">
+  <div class="eyebrow">تمرين تطبيقي — من واقعنا</div>
+  <h2 class="slide-title">كيف تتعامل مع هذا الموقف؟</h2>
+  <p class="slide-sub">سيناريو حقيقي من جولات تجربة المستفيد في مستشفانا — ناقشه مع مجموعتك</p>
+  <div class="scenario">
+    <div class="scenario-tag">السيناريو — تنويم الأطفال، الوردية المسائية</div>
+    <div class="scenario-text">
+      أثناء جولتك في تنويم الأطفال، وجدت <strong>مريضة تشتكي من التكييف للمرة الثالثة</strong> في يومين متتاليين. هي متوترة وتقول: <strong>"كل يوم تكتبون ولا أحد يصلح شيئاً — طفلي مريض والحر لا يُحتمل"</strong>. والدها بجانبها وبدأ يرفع صوته.
+    </div>
+  </div>
+  <div class="tcol">
+    <div class="cbox">
+      <div class="cbox-title">ناقش مع مجموعتك</div>
+      <div class="dlist">
+        <div class="ditem"><div class="ddot"></div><div class="dtext">ما أول شيء تفعله عند دخول الغرفة؟</div></div>
+        <div class="ditem"><div class="ddot"></div><div class="dtext">كيف تتعامل مع الأب الغاضب؟</div></div>
+        <div class="ditem"><div class="ddot"></div><div class="dtext">ما الجملة الأولى التي ستقولها للأم؟</div></div>
+        <div class="ditem"><div class="ddot"></div><div class="dtext">من تتصل به فوراً؟ وكيف تتابع حتى الحل؟</div></div>
+        <div class="ditem"><div class="ddot"></div><div class="dtext">كيف تُغلق الموقف بشكل يُشعرها بالاهتمام؟</div></div>
+      </div>
+    </div>
+    <div class="cbox" style="background:var(--green-pale);border-color:var(--green-mid)">
+      <div class="cbox-title">تذكّر من محاور اليوم</div>
+      <div class="dlist">
+        <div class="ditem"><div class="ddot"></div><div class="dtext"><strong>الثقة:</strong> اعترف بالتقصير بصدق — لا تبرر</div></div>
+        <div class="ditem"><div class="ddot"></div><div class="dtext"><strong>الغضب:</strong> هدّئ الأب بالإنصات لا بالدفاع</div></div>
+        <div class="ditem"><div class="ddot"></div><div class="dtext"><strong>المحادثة:</strong> اسأل الأم "ما الذي تحتاجه الآن؟"</div></div>
+        <div class="ditem"><div class="ddot"></div><div class="dtext"><strong>الشكوى:</strong> سجّل، تصرّف، تابع حتى الحل الفعلي</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 21: CLOSING -->
+<div class="slide slide-cover">
+  <div class="cover-badge">ختام الورشة</div>
+  <h1 class="cover-title">أنت الفرق<br><span>في تجربة كل مريض</span></h1>
+  <p class="cover-desc">كل جولة، كل محادثة، كل شكوى تُعالج — هي فرصة تُحدث فيها أثراً حقيقياً في حياة إنسان</p>
+  <div class="grid g3" style="max-width:680px;margin-top:8px">
+    <div class="card card-hl" style="text-align:center">
+      <div class="ctitle">ابنِ الثقة</div>
+      <div class="cbody">بكل كلمة، بكل نظرة، وبكل التزام تفي به</div>
+    </div>
+    <div class="card card-hl" style="text-align:center">
+      <div class="ctitle">أدِر المواقف</div>
+      <div class="cbody">بهدوء، تعاطف، وأدوات واضحة تعرف كيف توظّفها</div>
+    </div>
+    <div class="card card-hl" style="text-align:center">
+      <div class="ctitle">تابع حتى الحل</div>
+      <div class="cbody">الملاحظة التي تُتابع حتى تُحل هي ما يُفرّق بين موظف وموظف متميز</div>
+    </div>
+  </div>
+</div>
+
+</div>
+</main>
+
+<footer>
+  <div class="nav-dots" id="navDots"></div>
+  <span class="kbd-hint"><span class="kbd">←</span> <span class="kbd">→</span> للتنقل</span>
+  <div class="nav-btns">
+    <button class="btn btn-out" id="prevBtn" onclick="changeSlide(-1)">→ السابق</button>
+    <button class="btn btn-pri" id="nextBtn" onclick="changeSlide(1)">التالي ←</button>
+  </div>
+</footer>
+</div>
+
+<script>
+  const TOTAL = 20;
+  let current = 0;
+  const wrap = document.getElementById('slidesWrap');
+  const prog = document.getElementById('progBar');
+  const counter = document.getElementById('slideCounter');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  const dotsEl = document.getElementById('navDots');
+
+  for (let i = 0; i < TOTAL; i++) {
+    const d = document.createElement('button');
+    d.className = 'ndot' + (i === 0 ? ' active' : '');
+    d.setAttribute('aria-label', 'شريحة ' + (i+1));
+    d.onclick = () => goTo(i);
+    dotsEl.appendChild(d);
+  }
+
+  function updateUI() {
+    wrap.style.transform = `translateX(${current * 100}%)`;
+    prog.style.width = `${((current+1)/TOTAL)*100}%`;
+    counter.textContent = `${current+1} / ${TOTAL}`;
+    prevBtn.disabled = current === 0;
+    nextBtn.disabled = current === TOTAL-1;
+    nextBtn.textContent = current === TOTAL-1 ? 'النهاية' : 'التالي ←';
+    document.querySelectorAll('.ndot').forEach((d,i) => d.classList.toggle('active', i === current));
+    const slides = document.querySelectorAll('.slide');
+    if (slides[current]) slides[current].scrollTop = 0;
+  }
+
+  function goTo(i) { current = Math.max(0, Math.min(TOTAL-1, i)); updateUI(); }
+  function changeSlide(d) { goTo(current+d); }
+
+  document.addEventListener('keydown', e => {
+    if (e.key==='ArrowLeft'||e.key==='ArrowDown') changeSlide(1);
+    if (e.key==='ArrowRight'||e.key==='ArrowUp') changeSlide(-1);
+  });
+
+  let tx = 0;
+  document.querySelector('main').addEventListener('touchstart', e => { tx = e.touches[0].clientX; }, {passive:true});
+  document.querySelector('main').addEventListener('touchend', e => {
+    const d = tx - e.changedTouches[0].clientX;
+    if (Math.abs(d) > 50) changeSlide(d > 0 ? 1 : -1);
+  }, {passive:true});
+
+  updateUI();
+</script>
+</body>
+</html>
