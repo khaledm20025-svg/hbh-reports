@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>داشبورد بلاغات 937</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+  :root{
+    --primary:#0d6efd; --primary-dark:#0a4fb8;
+    --success:#198754; --warning:#e6a700; --danger:#dc3545;
+    --medical:#0891b2; --operational:#8b5cf6;
+    --bg:#f4f6f9; --card:#ffffff; --border:#e3e7ee; --text:#1f2937; --muted:#6b7280;
+  }
+  *{box-sizing:border-box;}
+  body{font-family:'Tajawal',sans-serif;background:var(--bg);margin:0;color:var(--text);direction:rtl;}
+
+  #gate{position:fixed;inset:0;background:linear-gradient(135deg,#0a4fb8,#0d6efd);display:flex;align-items:center;justify-content:center;z-index:999;}
+  .gate-box{background:#fff;padding:36px 32px;border-radius:16px;width:320px;text-align:center;box-shadow:0 20px 50px rgba(0,0,0,.25);}
+  .gate-box h2{margin:0 0 6px;font-size:20px;}
+  .gate-box p{color:var(--muted);font-size:13px;margin:0 0 18px;}
+  .gate-box input{width:100%;padding:12px;border:1px solid var(--border);border-radius:8px;font-family:'Tajawal',sans-serif;font-size:15px;text-align:center;margin-bottom:12px;}
+  .gate-box button{width:100%;padding:12px;border:none;border-radius:8px;background:var(--primary);color:#fff;font-family:'Tajawal',sans-serif;font-weight:700;font-size:15px;cursor:pointer;}
+  .gate-box button:hover{background:var(--primary-dark);}
+  #gate-error{color:var(--danger);font-size:12px;margin-top:8px;display:none;}
+
+  #app{display:none;}
+  header{background:linear-gradient(135deg,#0a4fb8,#0d6efd);color:#fff;padding:22px 28px;}
+  header .top-row{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;}
+  header h1{margin:0;font-size:22px;font-weight:900;}
+  header .subtitle{font-size:13px;opacity:.9;margin-top:4px;}
+  .dept-tag{font-size:12px;opacity:.85;margin-top:6px;}
+
+  .main-tabs{display:flex;gap:10px;padding:14px 28px 0;background:linear-gradient(135deg,#0a4fb8,#0d6efd);flex-wrap:wrap;}
+  .main-tab{padding:10px 20px;border-radius:10px 10px 0 0;background:rgba(255,255,255,.12);color:#fff;font-family:'Tajawal',sans-serif;font-weight:700;font-size:14px;border:none;cursor:pointer;}
+  .main-tab.active{background:var(--bg);color:var(--primary-dark);}
+
+  main{max-width:1200px;margin:0 auto;padding:22px 18px 50px;}
+  .view{display:none;}
+  .view.active{display:block;}
+
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin-bottom:24px;}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px;text-align:center;}
+  .card .num{font-size:26px;font-weight:900;color:var(--primary-dark);}
+  .card .lbl{font-size:12.5px;color:var(--muted);margin-top:4px;}
+
+  .panel{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:22px;}
+  .panel h3{margin:0 0 4px;font-size:16px;font-weight:700;}
+  .panel .panel-sub{font-size:12px;color:var(--muted);margin-bottom:14px;}
+
+  .exec-summary{background:linear-gradient(135deg,#eef4ff,#f7fbff);border:1px solid #d6e6ff;border-radius:12px;padding:18px 20px;margin-bottom:22px;font-size:14px;line-height:2;color:#1f3a5f;}
+  .exec-summary strong{color:var(--primary-dark);}
+
+  .charts-row{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:0;}
+  @media (max-width:800px){.charts-row{grid-template-columns:1fr;}}
+  .chart-wrap{height:280px;}
+
+  .dept-tab{padding:7px 16px;border-radius:20px;border:1px solid var(--border);background:#f8fafc;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:700;cursor:pointer;color:var(--text);}
+  .dept-tab.active{background:var(--primary);color:#fff;border-color:var(--primary);}
+
+  table{width:100%;border-collapse:collapse;font-size:13.5px;}
+  th,td{padding:10px 8px;text-align:right;border-bottom:1px solid var(--border);}
+  th{background:#f8fafc;font-weight:700;color:var(--muted);font-size:12.5px;white-space:nowrap;}
+  tr:hover{background:#f8fafc;}
+  td.ticket{font-weight:700;color:var(--primary-dark);white-space:nowrap;}
+  .pill{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11.5px;font-weight:700;white-space:nowrap;background:#dbe9ff;color:var(--primary-dark);}
+  .pill.type-complaint{background:#ffe4e4;color:var(--danger);}
+  .pill.type-service{background:#e2f7e9;color:var(--success);}
+  .tag{display:inline-flex;align-items:center;gap:4px;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:700;}
+  .tag.medical{background:#e0f7fa;color:var(--medical);}
+  .tag.operational{background:#f1e8ff;color:var(--operational);}
+  .tag.other{background:#eee;color:var(--muted);}
+
+  .period-table{width:100%;border-collapse:collapse;font-size:13.5px;}
+  .period-table th,.period-table td{padding:10px 10px;text-align:center;border:1px solid var(--border);}
+  .period-table th{background:#f8fafc;}
+  .period-table td:first-child,.period-table th:first-child{text-align:right;background:#f8fafc;font-weight:700;}
+  .period-table .current-col{background:#eef4ff;font-weight:700;color:var(--primary-dark);}
+
+  .quality-table{width:100%;border-collapse:collapse;font-size:14px;}
+  .quality-table th,.quality-table td{padding:12px;text-align:center;border:1px solid var(--border);}
+  .quality-table th{background:#f8fafc;}
+  .quality-table td:first-child{text-align:right;font-weight:700;background:#f8fafc;}
+  .quality-table .zero{color:var(--success);font-weight:700;}
+  .quality-table .nonzero{color:var(--danger);font-weight:700;}
+
+  .pattern-card{background:#f8fafc;border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:10px;}
+  .pattern-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+  .pattern-name{font-weight:900;color:var(--primary-dark);font-size:14.5px;}
+  .pattern-count{background:#fff3cd;color:#a06b00;padding:3px 12px;border-radius:20px;font-size:12px;font-weight:700;}
+  .pattern-ids{font-size:12px;color:var(--muted);}
+
+  .toolbar{display:flex;gap:10px;margin-bottom:14px;}
+  .toolbar button{
+    padding:8px 16px;border:1px solid var(--border);border-radius:8px;background:#f8fafc;
+    font-family:'Tajawal',sans-serif;font-weight:700;font-size:13px;cursor:pointer;color:var(--text);
+  }
+  .toolbar button:hover{background:#eef1f6;}
+
+  .empty-note{text-align:center;padding:30px;color:var(--muted);font-size:14px;}
+  footer{text-align:center;padding:20px;color:var(--muted);font-size:12px;}
+
+  .change-item{background:#eef9f0;border:1px solid #c7ecd0;border-radius:8px;padding:10px 14px;margin-bottom:8px;font-size:13px;}
+  .change-item .badge-new{background:var(--success);color:#fff;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:700;margin-left:8px;}
+
+  .review-row{display:flex;justify-content:space-between;align-items:center;background:#f8fafc;border:1px solid var(--border);border-radius:8px;padding:9px 14px;font-size:13px;}
+  .review-row .dept-label{font-weight:700;}
+  .review-btn{border:1px solid var(--border);background:#fff;padding:6px 14px;border-radius:8px;font-family:'Tajawal',sans-serif;font-size:12px;font-weight:700;cursor:pointer;color:var(--text);}
+  .review-btn.reviewed{background:var(--success);color:#fff;border-color:var(--success);}
+
+  @media print{
+    #gate, .main-tabs, .toolbar{display:none !important;}
+    .view{display:block !important;}
+  }
+</style>
+</head>
+<body>
+
+  <div id="gate">
+    <div class="gate-box">
+      <h2>🔒 دخول الداشبورد</h2>
+      <p>قسم الإحصاء الطبي</p>
+      <input type="password" id="pw" placeholder="كلمة المرور" onkeydown="if(event.key==='Enter')checkPw()">
+      <button onclick="checkPw()">دخول</button>
+      <div id="gate-error">كلمة المرور غير صحيحة</div>
+    </div>
+  </div>
+
+  <div id="app">
+    <header>
+      <div class="top-row">
+        <div>
+          <h1>داشبورد بلاغات 937</h1>
+          <div class="subtitle">مستشفى الولادة والأطفال بحفر الباطن • قسم الإحصاء الطبي</div>
+        </div>
+        <div style="text-align:left;">
+          <div class="dept-tag" id="lastUpdateNote">آخر تحديث: --</div>
+        </div>
+      </div>
+    </header>
+
+    <div class="main-tabs">
+      <button class="main-tab active" data-view="today" onclick="switchView('today')">📅 بلاغات اليوم</button>
+      <button class="main-tab" data-view="current" onclick="switchView('current')">📊 الفترة الحالية</button>
+      <button class="main-tab" data-view="previous" onclick="switchView('previous')">🗂️ الفترات السابقة</button>
+    </div>
+
+    <main>
+
+      <!-- ===== TODAY VIEW ===== -->
+      <div class="view active" id="view-today">
+        <div class="cards" id="todayCards"></div>
+
+        <div class="charts-row">
+          <div class="panel">
+            <h3>🏥 بلاغات اليوم حسب القسم</h3>
+            <div class="panel-sub">توزيع بلاغات اليوم على الأقسام</div>
+            <div class="chart-wrap"><canvas id="todayDeptChart"></canvas></div>
+          </div>
+          <div class="panel">
+            <h3>🔍 بلاغات اليوم معني بـ</h3>
+            <div class="panel-sub">تصنيف بلاغات اليوم حسب الجهة المعنية</div>
+            <div class="chart-wrap"><canvas id="todayConcernChart"></canvas></div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h3>📋 تفاصيل بلاغات اليوم</h3>
+          <div style="overflow-x:auto;">
+            <table>
+              <thead><tr><th>رقم البلاغ</th><th>القسم</th><th>النوع</th><th>الطبيعة</th><th>سبب البلاغ</th><th>الاسم</th><th>الجوال</th></tr></thead>
+              <tbody id="todayBody"></tbody>
+            </table>
+          </div>
+          <div class="empty-note" id="todayEmpty" style="display:none;">لا توجد بلاغات مسجلة بتاريخ اليوم بعد.</div>
+        </div>
+      </div>
+
+      <!-- ===== CURRENT PERIOD VIEW ===== -->
+      <div class="view" id="view-current">
+
+        <div class="exec-summary" id="execSummary"></div>
+
+        <div class="panel" id="changesPanel">
+          <h3>🆕 التغييرات منذ آخر تحديث</h3>
+          <div class="panel-sub">البلاغات اللي انضافت للفترة الحالية من آخر مرة حدّثنا فيها الداشبورد</div>
+          <div id="changesBox"></div>
+        </div>
+
+        <div class="cards" id="currentCards"></div>
+
+        <div class="panel">
+          <h3>🚦 مؤشرات جودة المتابعة</h3>
+          <div class="panel-sub">المؤشرات الحرجة الثابتة (بلا تسامح) للفترة الحالية</div>
+          <table class="quality-table" id="qualityTable"></table>
+        </div>
+
+        <div class="panel">
+          <h3>🏥 عرض حسب القسم</h3>
+          <div class="panel-sub">اختر قسم لعرض بلاغاته فقط ضمن الفترة الحالية — وسجّل "تم الاطلاع" بعد المراجعة</div>
+          <div id="deptTabs" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;"></div>
+          <div id="reviewSummary" style="font-size:13px;color:var(--muted);margin-bottom:10px;"></div>
+          <div id="reviewChecklist" style="display:flex;flex-direction:column;gap:8px;"></div>
+        </div>
+
+        <div class="charts-row">
+          <div class="panel">
+            <h3>📊 توزيع البلاغات حسب القسم</h3>
+            <div class="panel-sub">كل الأقسام (شكوى + طلب خدمة)</div>
+            <div class="chart-wrap"><canvas id="deptChart"></canvas></div>
+          </div>
+          <div class="panel">
+            <h3>⭐ أعلى 5 أقسام بالشكاوى الفعلية</h3>
+            <div class="panel-sub">باستثناء طلبات الخدمة — يعكس المشاكل الحقيقية فقط</div>
+            <div class="chart-wrap"><canvas id="top5Chart"></canvas></div>
+          </div>
+        </div>
+
+        <div class="charts-row">
+          <div class="panel">
+            <h3>🔍 البلاغ معني بـ</h3>
+            <div class="panel-sub">تصنيف البلاغات حسب الجهة المعنية</div>
+            <div class="chart-wrap"><canvas id="concernChart"></canvas></div>
+          </div>
+          <div class="panel">
+            <h3>🩺 طبي مقابل تشغيلي</h3>
+            <div class="panel-sub">هل المشكلة طبية (أطباء/تمريض) أو تشغيلية (استقبال/صيانة)</div>
+            <div class="chart-wrap"><canvas id="natureChart"></canvas></div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h3>📈 توزيع البلاغات اليومي</h3>
+          <div class="panel-sub">عدد البلاغات لكل يوم ضمن الفترة الحالية (بأسماء الأيام الفعلية)</div>
+          <div class="chart-wrap"><canvas id="dailyChart"></canvas></div>
+        </div>
+
+        <div class="panel">
+          <h3>🔁 تكرار المستفيد (شكوى أو طلب خدمة)</h3>
+          <div class="panel-sub">نفس رقم الجوال تكرر بأكثر من بلاغ خلال الفترة، بغض النظر عن النوع</div>
+          <div id="repeatBox"></div>
+        </div>
+
+        <div class="panel">
+          <h3>🧩 أنماط الشكاوى المتكررة</h3>
+          <div class="panel-sub">نفس نوع المشكلة تكرر أكثر من مرة خلال الفترة (بغض النظر عن هوية المستفيد) — شكاوى فعلية فقط، باستثناء طلبات الخدمة</div>
+          <div id="patternsBox"></div>
+        </div>
+
+        <div class="panel">
+          <h3>📋 تفاصيل بلاغات الفترة الحالية</h3>
+          <div class="toolbar">
+            <button onclick="window.print()">🖨️ طباعة</button>
+            <button onclick="exportCSV()">⬇️ تصدير CSV</button>
+          </div>
+          <div style="overflow-x:auto;">
+            <table>
+              <thead><tr><th>رقم البلاغ</th><th>التاريخ</th><th>القسم</th><th>النوع</th><th>الطبيعة</th><th>معني بـ</th><th>سبب البلاغ</th><th>الاسم</th><th>الجوال</th></tr></thead>
+              <tbody id="currentBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== PREVIOUS PERIODS VIEW ===== -->
+      <div class="view" id="view-previous">
+        <div class="panel">
+          <h3>🗂️ ملخص الفترات السابقة</h3>
+          <div class="panel-sub">أرقام إجمالية لكل فترة سابقة، للمقارنة مع الفترة الحالية</div>
+          <div style="overflow-x:auto;">
+            <table class="period-table" id="periodsTable"></table>
+          </div>
+        </div>
+      </div>
+
+    </main>
+
+    <footer>قسم الإحصاء الطبي — مستشفى الولادة والأطفال بحفر الباطن — تجمع حفر الباطن الصحي</footer>
+  </div>
+
+<script>
+function checkPw(){
+  const val = document.getElementById('pw').value;
+  if(val === '1234567'){
+    document.getElementById('gate').style.display='none';
+    document.getElementById('app').style.display='block';
+  } else {
+    document.getElementById('gate-error').style.display='block';
+  }
+}
+
+function switchView(name){
+  document.querySelectorAll('.main-tab').forEach(b=>b.classList.toggle('active', b.dataset.view===name));
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-'+name).classList.add('active');
+}
+
+// ===== Last update note =====
+const lastUpdateTimestamp = new Date("2026-08-29T15:30:00");
+function formatArabicDateTime(d){
+  const day = String(d.getDate()).padStart(2,'0');
+  const month = String(d.getMonth()+1).padStart(2,'0');
+  const year = d.getFullYear();
+  let hours = d.getHours();
+  const minutes = String(d.getMinutes()).padStart(2,'0');
+  const ampm = hours >= 12 ? 'م' : 'ص';
+  hours = hours % 12; if(hours === 0) hours = 12;
+  return `${day}/${month}/${year} - ${String(hours).padStart(2,'0')}:${minutes} ${ampm}`;
+}
+document.getElementById('lastUpdateNote').textContent = 'آخر تحديث: ' + formatArabicDateTime(lastUpdateTimestamp);
+
+// ===== Weekday names for period dates =====
+const weekdayMap = {
+  "27-8":"الخميس", "28-8":"الجمعة", "29-8":"السبت", "30-8":"الأحد",
+  "31-8":"الإثنين", "1-9":"الثلاثاء", "2-9":"الأربعاء"
+};
+function dateLabel(d){ return weekdayMap[d] ? `${d} (${weekdayMap[d]})` : d; }
+
+// ===== Current period data (27 أغسطس - 2 سبتمبر) =====
+const tickets = [
+  {id:"B4354416", date:"27-8", dept:"عيادات النساء", concern:"أطباء", reason:"يفيد المستفيد بوجود تأخير بالكشف على المستفيد وصل الى مدة 4 ساعات", name:"تهاني العنزي", phone:"509135456"},
+  {id:"B4355818", date:"27-8", dept:"طوارئ الأطفال", concern:"أطباء", reason:"يفيد المستفيد بوجود اختلاف بتشخيص الحالة", name:"منيزل حامد", phone:"556374618"},
+  {id:"B4356417", date:"27-8", dept:"الصيدلية", concern:"-", reason:"يفيد المستفيد بعدم توفر دواء هرمون النمو", name:"سعود العنزي", phone:"565857044"},
+  {id:"B4357128", date:"27-8", dept:"الصيدلية", concern:"-", reason:"يفيد المستفيد بعدم توفر دواء هرمون النمو", name:"نورة سعود", phone:"531080544"},
+  {id:"B4357368", date:"27-8", dept:"تنويم ما بعد الولادة", concern:"تمريض", reason:"يفيد المستفيد تواجد بالعناية الفائقة بقسم العمليات لمدة 3 ساعات بسبب عدم وجود اسرة متاحة بتنويم النساء ما بعد الولادة", name:"مرام ضيف الله", phone:"0508567888"},
+  {id:"B4358185", date:"27-8", dept:"العمليات", concern:"أطباء", reason:"يفيد المستفيد بوجود تأخير بوقت بداية العملية", name:"تميم العنزي", phone:"548488008"},
+  {id:"B4358860", date:"27-8", dept:"تنويم ما بعد الولادة", concern:"شركة الصيانة", reason:"يفيد المستفيد بعدم توفر كرسي للمرافق", name:"وضحى العنزي", phone:"501101562"},
+  {id:"B4359009", date:"27-8", dept:"عيادات النساء", concern:"أطباء", reason:"يفيد المستفيد بوجود سلوك فظ من قبل د : احمد", name:"ريم العنزي", phone:"500238122"},
+  {id:"B4359339", date:"27-8", dept:"الصيدلية", concern:"-", reason:"يفيد المستفيد بعدم توفر دواء البروستين", name:"جميلة الشمري", phone:"0534444632"},
+  {id:"B4359373", date:"27-8", dept:"تنويم ما قبل الولادة", concern:"أطباء", reason:"يفيد المستفيد بعدم الرضا على الخطة العلاجية", name:"جهاد عبدالله", phone:"565163680"},
+  {id:"B4360222", date:"27-8", dept:"تنويم ما بعد الولادة", concern:"تمريض", reason:"يفيد المستفيد لم يتم إعطاء المولود حليب", name:"تغريد خليفة", phone:"597000488"},
+  {id:"B4360518", date:"27-8", dept:"عيادات النساء", concern:"استقبال عيادات النساء", reason:"طلب حجز موعد عيادة الحوامل", name:"منار جاسم", phone:"506662698"},
+  {id:"B4360554", date:"27-8", dept:"تنويم ما قبل الولادة", concern:"تمريض", reason:"يفيد المستفيد تعرض لسلوك فظ ورفع الصوت من قبل الممرضة سلامة الجميلي", name:"في", phone:"564351595"},
+  {id:"B4361375", date:"27-8", dept:"عيادات النساء", concern:"استقبال عيادات النساء", reason:"طلب تأجيل موعد عيادة الحوامل", name:"شهد الخالدي", phone:"556154710"},
+  {id:"B4361511", date:"27-8", dept:"تنويم ما قبل الولادة", concern:"أطباء", reason:"المستفيد يطلب تحويل خارج المنطقة", name:"وصايف الشمري", phone:"509338346"},
+  {id:"B4362094", date:"27-8", dept:"طوارئ الأطفال", concern:"أطباء", reason:"يفيد المستفيد بوجود تأخير باستكمال الخطة العلاجية من قبل د : عبدالحميد", name:"سلمان المطيري", phone:"538203382"},
+  {id:"B4362317", date:"27-8", dept:"ملاحظة النساء", concern:"أطباء", reason:"يفيد زوج المستفيدة بعدم وجود الطبيب المعالج", name:"هيام", phone:"0537429919"},
+  {id:"B4364747", date:"27-8", dept:"عيادات النساء", concern:"استقبال عيادات النساء", reason:"طلب حجز موعد عيادة امراض النساء والولادة", name:"منال العنزي", phone:"500218991"},
+  {id:"B4366290", date:"28-8", dept:"العمليات", concern:"أطباء", reason:"يفيد المستفيد بوجود تأخير بوقت بداية العملية", name:"نايف الشمري", phone:"501156173"},
+  {id:"B4370342", date:"28-8", dept:"الأشعة", concern:"-", reason:"طلب تأجيل موعد فحص الاشعة", name:"نوف العنزي", phone:"0509850008"},
+  {id:"B4375641", date:"29-8", dept:"عيادات النساء", concern:"استقبال عيادات النساء", reason:"طلب حجز موعد عيادة امراض النساء والولادة", name:"نوير العتيبي", phone:"508037953"},
+  {id:"B4374963", date:"29-8", dept:"عيادات النساء", concern:"استقبال عيادات النساء", reason:"طلب استعلام عن موعد عيادة امراض النساء والولادة", name:"زينب", phone:"532002016"},
+  {id:"B4376378", date:"29-8", dept:"عيادات الأطفال", concern:"استقبال عيادات الأطفال", reason:"طلب تأجيل موعد عيادة العظام", name:"سديم", phone:"555002151"},
+];
+
+// ===== Classification: شكوى فعلية vs طلب خدمة =====
+function isServiceRequest(reason){
+  return reason.trim().startsWith('طلب');
+}
+tickets.forEach(t=>{ t.type = isServiceRequest(t.reason) ? 'طلب خدمة' : 'شكوى فعلية'; });
+
+// ===== Medical vs Operational nature =====
+function getNature(concern){
+  if(['أطباء','تمريض'].includes(concern)) return 'طبي';
+  if(['استقبال عيادات النساء','استقبال عيادات الأطفال','شركة الصيانة'].includes(concern)) return 'تشغيلي';
+  return 'أخرى';
+}
+tickets.forEach(t=>{ t.nature = getNature(t.concern); });
+
+function typePillHtml(t){
+  return `<span class="pill ${t.type==='شكوى فعلية'?'type-complaint':'type-service'}">${t.type}</span>`;
+}
+function natureTagHtml(t){
+  const cls = t.nature==='طبي' ? 'medical' : (t.nature==='تشغيلي' ? 'operational' : 'other');
+  const icon = t.nature==='طبي' ? '🩺' : (t.nature==='تشغيلي' ? '🔧' : '•');
+  return `<span class="tag ${cls}">${icon} ${t.nature}</span>`;
+}
+
+// ===== Complaint pattern detection (شكوى فعلية only) =====
+const PATTERNS = [
+  {name:"سلوك فظ / سوء معاملة", keywords:["سلوك فظ","رفع الصوت","اعتداء لفظي","أسلوب غير لائق"]},
+  {name:"نقص موارد (أسرة / كراسي)", keywords:["عدم وجود اسرة","كرسي"]},
+  {name:"عدم توفر دواء", keywords:["دواء"]},
+  {name:"تأخير بالخدمة", keywords:["تأخير"]},
+  {name:"عدم الرضا عن الخطة العلاجية / التشخيص", keywords:["عدم الرضا","اختلاف بتشخيص","الخطة العلاجية"]},
+];
+function getPattern(reason){
+  for(const p of PATTERNS){
+    if(p.keywords.some(k=>reason.includes(k))) return p.name;
+  }
+  return "أخرى";
+}
+tickets.forEach(t=>{ t.pattern = t.type==='شكوى فعلية' ? getPattern(t.reason) : null; });
+
+const allDates = [...new Set(tickets.map(t=>t.date))];
+const sortedDays = allDates.slice().sort((a,b)=>{
+  const [da,ma]=a.split('-').map(Number), [db,mb]=b.split('-').map(Number);
+  return (ma-mb)||(da-db);
+});
+const todayDate = sortedDays.slice(-1)[0];
+
+// ===== TODAY VIEW =====
+const todayTickets = tickets.filter(t=>t.date === todayDate);
+document.getElementById('todayCards').innerHTML = `
+  <div class="card"><div class="num">${todayTickets.length}</div><div class="lbl">بلاغات اليوم — ${dateLabel(todayDate)}</div></div>
+  <div class="card"><div class="num">${new Set(todayTickets.map(t=>t.dept)).size}</div><div class="lbl">عدد الأقسام المتأثرة اليوم</div></div>
+  <div class="card"><div class="num">${todayTickets.filter(t=>t.type==='شكوى فعلية').length}</div><div class="lbl">شكاوى فعلية اليوم</div></div>
+  <div class="card"><div class="num">${todayTickets.filter(t=>t.type==='طلب خدمة').length}</div><div class="lbl">طلبات خدمة اليوم</div></div>
+`;
+if(todayTickets.length === 0){
+  document.getElementById('todayEmpty').style.display = 'block';
+} else {
+  document.getElementById('todayBody').innerHTML = todayTickets.map(t=>`
+    <tr>
+      <td class="ticket">${t.id}</td>
+      <td>${t.dept}</td>
+      <td>${typePillHtml(t)}</td>
+      <td>${natureTagHtml(t)}</td>
+      <td>${t.reason}</td>
+      <td>${t.name}</td>
+      <td style="direction:ltr;text-align:left;">${t.phone}</td>
+    </tr>
+  `).join('');
+
+  const todayDeptCounts = {};
+  todayTickets.forEach(t=>{ todayDeptCounts[t.dept]=(todayDeptCounts[t.dept]||0)+1; });
+  new Chart(document.getElementById('todayDeptChart'), {
+    type:'bar',
+    data:{ labels:Object.keys(todayDeptCounts), datasets:[{label:'بلاغات', data:Object.values(todayDeptCounts), backgroundColor:'#0d6efd'}] },
+    options:{ indexAxis:'y', plugins:{legend:{display:false}}, scales:{x:{beginAtZero:true, ticks:{stepSize:1}}}, maintainAspectRatio:false }
+  });
+
+  const todayConcernCounts = {};
+  todayTickets.forEach(t=>{ const c=t.concern==='-'?'أخرى':t.concern; todayConcernCounts[c]=(todayConcernCounts[c]||0)+1; });
+  new Chart(document.getElementById('todayConcernChart'), {
+    type:'doughnut',
+    data:{ labels:Object.keys(todayConcernCounts), datasets:[{data:Object.values(todayConcernCounts), backgroundColor:['#0d6efd','#198754','#e6a700','#dc3545','#8b5cf6']}] },
+    options:{ plugins:{legend:{position:'bottom', labels:{font:{family:'Tajawal'}, boxWidth:12}}}, maintainAspectRatio:false }
+  });
+}
+
+// ===== CURRENT PERIOD VIEW =====
+const complaintCount = tickets.filter(t=>t.type==='شكوى فعلية').length;
+const serviceCount = tickets.filter(t=>t.type==='طلب خدمة').length;
+
+document.getElementById('currentCards').innerHTML = `
+  <div class="card"><div class="num">${tickets.length}</div><div class="lbl">إجمالي بلاغات الفترة</div></div>
+  <div class="card"><div class="num">${complaintCount}</div><div class="lbl">شكاوى فعلية</div></div>
+  <div class="card"><div class="num">${serviceCount}</div><div class="lbl">طلبات خدمة</div></div>
+  <div class="card"><div class="num">${new Set(tickets.map(t=>t.dept)).size}</div><div class="lbl">عدد الأقسام</div></div>
+`;
+
+// Executive summary
+const deptCountsAll = {};
+tickets.forEach(t=>{ deptCountsAll[t.dept]=(deptCountsAll[t.dept]||0)+1; });
+const topDept = Object.entries(deptCountsAll).sort((a,b)=>b[1]-a[1])[0];
+const misconductCount = tickets.filter(t=>t.pattern==="سلوك فظ / سوء معاملة").length;
+document.getElementById('execSummary').innerHTML = `
+  خلال الفترة الحالية (${dateLabel(sortedDays[0])} – ${dateLabel(sortedDays[sortedDays.length-1])})، وردت <strong>${tickets.length} بلاغ</strong>
+  موزعة على <strong>${new Set(tickets.map(t=>t.dept)).size} قسم</strong>، منها <strong>${complaintCount} شكوى فعلية</strong> و
+  <strong>${serviceCount} طلب خدمة</strong>. أكثر الأقسام تلقياً للبلاغات هو <strong>${topDept[0]}</strong> بواقع
+  ${topDept[1]} بلاغ. سُجّل <strong>${misconductCount}</strong> بلاغ متعلق بسلوك فظ خلال الفترة.
+`;
+
+function renderCurrentTable(filterDept){
+  const rows = filterDept ? tickets.filter(t=>t.dept===filterDept) : tickets;
+  document.getElementById('currentBody').innerHTML = rows.map(t=>`
+    <tr>
+      <td class="ticket">${t.id}</td>
+      <td>${t.date}</td>
+      <td>${t.dept}</td>
+      <td>${typePillHtml(t)}</td>
+      <td>${natureTagHtml(t)}</td>
+      <td><span class="pill">${t.concern}</span></td>
+      <td>${t.reason}</td>
+      <td>${t.name}</td>
+      <td style="direction:ltr;text-align:left;">${t.phone}</td>
+    </tr>
+  `).join('');
+}
+renderCurrentTable(null);
+
+// Dept tabs
+const deptNames = Object.keys(deptCountsAll).sort((a,b)=>deptCountsAll[b]-deptCountsAll[a]);
+document.getElementById('deptTabs').innerHTML =
+  [`<button class="dept-tab active" onclick="selectDept(this,null)">الكل (${tickets.length})</button>`]
+  .concat(deptNames.map(d=>`<button class="dept-tab" onclick="selectDept(this,'${d}')">${d} (${deptCountsAll[d]})</button>`))
+  .join('');
+function selectDept(btn, dept){
+  document.querySelectorAll('#deptTabs .dept-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderCurrentTable(dept);
+}
+
+// Dept distribution chart (all)
+new Chart(document.getElementById('deptChart'), {
+  type:'bar',
+  data:{ labels: deptNames, datasets:[{ label:'عدد البلاغات', data: deptNames.map(d=>deptCountsAll[d]), backgroundColor:'#0d6efd' }] },
+  options:{ indexAxis:'y', plugins:{legend:{display:false}}, scales:{x:{beginAtZero:true, ticks:{stepSize:1}}}, maintainAspectRatio:false }
+});
+
+// Top-5 departments by شكوى فعلية only
+const complaintDeptCounts = {};
+tickets.filter(t=>t.type==='شكوى فعلية').forEach(t=>{ complaintDeptCounts[t.dept]=(complaintDeptCounts[t.dept]||0)+1; });
+const top5 = Object.entries(complaintDeptCounts).sort((a,b)=>b[1]-a[1]).slice(0,5);
+new Chart(document.getElementById('top5Chart'), {
+  type:'bar',
+  data:{ labels: top5.map(x=>x[0]), datasets:[{ label:'شكاوى فعلية', data: top5.map(x=>x[1]), backgroundColor:'#dc3545' }] },
+  options:{ indexAxis:'y', plugins:{legend:{display:false}}, scales:{x:{beginAtZero:true, ticks:{stepSize:1}}}, maintainAspectRatio:false }
+});
+
+// Concern chart
+const concernCounts = {};
+tickets.forEach(t=>{ const c=t.concern==='-'?'أخرى':t.concern; concernCounts[c]=(concernCounts[c]||0)+1; });
+new Chart(document.getElementById('concernChart'), {
+  type:'doughnut',
+  data:{ labels:Object.keys(concernCounts), datasets:[{data:Object.values(concernCounts), backgroundColor:['#0d6efd','#198754','#e6a700','#dc3545','#8b5cf6','#0891b2','#f97316']}] },
+  options:{ plugins:{legend:{position:'bottom', labels:{font:{family:'Tajawal'}, boxWidth:12}}}, maintainAspectRatio:false }
+});
+
+// Medical vs Operational chart
+const natureCounts = {'طبي':0,'تشغيلي':0,'أخرى':0};
+tickets.forEach(t=>{ natureCounts[t.nature]++; });
+new Chart(document.getElementById('natureChart'), {
+  type:'doughnut',
+  data:{ labels:Object.keys(natureCounts), datasets:[{data:Object.values(natureCounts), backgroundColor:['#0891b2','#8b5cf6','#c9cdd3']}] },
+  options:{ plugins:{legend:{position:'bottom', labels:{font:{family:'Tajawal'}, boxWidth:12}}}, maintainAspectRatio:false }
+});
+
+// Daily distribution chart with weekday labels
+const dayCounts = {};
+allDates.forEach(d=>dayCounts[d]=0);
+tickets.forEach(t=>{ dayCounts[t.date]++; });
+new Chart(document.getElementById('dailyChart'), {
+  type:'line',
+  data:{
+    labels: sortedDays.map(dateLabel),
+    datasets:[{ label:'عدد البلاغات', data: sortedDays.map(d=>dayCounts[d]), borderColor:'#0d6efd', backgroundColor:'rgba(13,110,253,.15)', fill:true, tension:.3, pointRadius:5, pointBackgroundColor:'#0d6efd' }]
+  },
+  options:{ plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true, ticks:{stepSize:2}}}, maintainAspectRatio:false }
+});
+
+// Repeat beneficiary (any type)
+const phoneCounts = {};
+tickets.forEach(t=>{ const norm=t.phone.replace(/^0/,''); phoneCounts[norm]=(phoneCounts[norm]||0)+1; });
+const repeats = Object.entries(phoneCounts).filter(([p,c])=>c>1);
+const repeatBox = document.getElementById('repeatBox');
+if(repeats.length === 0){
+  repeatBox.innerHTML = `<div style="color:var(--success);font-weight:700;">✅ لا يوجد أي مستفيد كرر التواصل خلال الفترة الحالية</div>`;
+} else {
+  repeatBox.innerHTML = repeats.map(([p,c])=>{
+    const t = tickets.find(t=>t.phone.replace(/^0/,'')===p);
+    return `<div class="pill" style="margin-left:6px;background:#fff3cd;color:#a06b00;">${t.name} — ${c} بلاغات</div>`;
+  }).join('');
+}
+
+// Recurring complaint patterns (شكوى فعلية only, grouped by issue type)
+const patternGroups = {};
+tickets.filter(t=>t.pattern && t.pattern !== 'أخرى').forEach(t=>{
+  if(!patternGroups[t.pattern]) patternGroups[t.pattern] = [];
+  patternGroups[t.pattern].push(t.id);
+});
+const patternsBox = document.getElementById('patternsBox');
+const recurringPatterns = Object.entries(patternGroups).filter(([name,ids])=>ids.length>=2).sort((a,b)=>b[1].length-a[1].length);
+if(recurringPatterns.length === 0){
+  patternsBox.innerHTML = `<div style="color:var(--success);font-weight:700;">✅ لا توجد أنماط شكاوى متكررة خلال الفترة الحالية</div>`;
+} else {
+  patternsBox.innerHTML = recurringPatterns.map(([name,ids])=>`
+    <div class="pattern-card">
+      <div class="pattern-top">
+        <span class="pattern-name">${name}</span>
+        <span class="pattern-count">تكرر ${ids.length} مرات</span>
+      </div>
+      <div class="pattern-ids">أرقام البلاغات: ${ids.join('، ')}</div>
+    </div>
+  `).join('');
+}
+
+// Quality indicators table
+const refusalCount = tickets.filter(t=>t.reason.includes('رفض')).length;
+const absenceCount = tickets.filter(t=>t.reason.includes('عدم تواجد') || t.reason.includes('غياب')).length;
+document.getElementById('qualityTable').innerHTML = `
+  <tr><th>المؤشر</th><th>عدد البلاغات (الفترة الحالية)</th></tr>
+  <tr><td>بلاغات سلوك فظ</td><td class="${misconductCount>0?'nonzero':'zero'}">${misconductCount}</td></tr>
+  <tr><td>بلاغات رفض الخدمة</td><td class="${refusalCount>0?'nonzero':'zero'}">${refusalCount}</td></tr>
+  <tr><td>بلاغات عدم التواجد</td><td class="${absenceCount>0?'nonzero':'zero'}">${absenceCount}</td></tr>
+`;
+
+// CSV export
+function exportCSV(){
+  const headers = ['رقم البلاغ','التاريخ','القسم','النوع','الطبيعة','معني بـ','سبب البلاغ','الاسم','الجوال'];
+  const rows = tickets.map(t=>[t.id,t.date,t.dept,t.type,t.nature,t.concern,t.reason,t.name,t.phone]);
+  let csv = '\uFEFF' + headers.join(',') + '\n';
+  rows.forEach(r=>{ csv += r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',') + '\n'; });
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = 'بلاغات_الفترة_الحالية.csv';
+  link.click();
+}
+
+// ===== Changes since last update =====
+// IDs that already existed the last time the dashboard was refreshed (before today's batch)
+const previousSnapshotIds = ["B4354416","B4355818","B4356417","B4357128","B4357368","B4358185","B4358860","B4359009","B4359339","B4359373","B4360222","B4360518","B4360554","B4361375","B4361511","B4362094","B4362317","B4364747","B4366290","B4370342"];
+const newSinceLastUpdate = tickets.filter(t=>!previousSnapshotIds.includes(t.id));
+const changesBox = document.getElementById('changesBox');
+if(newSinceLastUpdate.length === 0){
+  changesBox.innerHTML = `<div style="color:var(--muted);font-size:13px;">لا توجد بلاغات جديدة منذ آخر تحديث.</div>`;
+} else {
+  changesBox.innerHTML = newSinceLastUpdate.map(t=>`
+    <div class="change-item">
+      <span class="badge-new">جديد</span>
+      <strong>${t.id}</strong> — ${t.dept} — ${t.reason.length>60?t.reason.slice(0,60)+'…':t.reason} (${t.date})
+    </div>
+  `).join('');
+}
+
+// ===== Review tracking ("تم الاطلاع") per department, stored per browser =====
+const REVIEW_API_URL = "https://script.google.com/macros/s/AKfycbzMtUPKWOC1_cLbfQwCwPOPqIZdxEMB0rBj6e4hYEzizmMR1k2T0MvLxdsoMTXk-f2x/exec";
+let reviewStatus = {}; // populated from Google Sheet
+
+function renderReviewChecklist(){
+  const wrap = document.getElementById('reviewChecklist');
+  wrap.innerHTML = deptNames.map(d=>{
+    const reviewed = !!(reviewStatus[d] && reviewStatus[d].reviewed);
+    return `
+      <div class="review-row">
+        <span class="dept-label">${d}</span>
+        <button class="review-btn ${reviewed?'reviewed':''}" onclick="toggleReview('${d}')">${reviewed ? '✅ تم الاطلاع' : 'وسم كـ تم الاطلاع'}</button>
+      </div>
+    `;
+  }).join('');
+  const reviewedCount = deptNames.filter(d=>reviewStatus[d] && reviewStatus[d].reviewed).length;
+  document.getElementById('reviewSummary').textContent = `${reviewedCount} من ${deptNames.length} قسم تم الاطلاع عليها (مشترك بين الجميع عبر جوجل شيت)`;
+}
+
+async function loadReviewStatus(){
+  document.getElementById('reviewSummary').textContent = 'جارِ تحميل حالة المراجعة...';
+  try{
+    const res = await fetch(REVIEW_API_URL);
+    reviewStatus = await res.json();
+  }catch(e){
+    reviewStatus = {};
+  }
+  renderReviewChecklist();
+}
+
+async function toggleReview(dept){
+  const current = !!(reviewStatus[dept] && reviewStatus[dept].reviewed);
+  const newVal = !current;
+  reviewStatus[dept] = { reviewed: newVal, lastUpdate: new Date().toISOString() };
+  renderReviewChecklist(); // optimistic UI update
+  try{
+    await fetch(REVIEW_API_URL, {
+      method: 'POST',
+      body: JSON.stringify({ dept: dept, reviewed: newVal })
+    });
+  }catch(e){
+    // if it fails, reload real status from the sheet
+    loadReviewStatus();
+  }
+}
+
+loadReviewStatus();
+
+// ===== PREVIOUS PERIODS VIEW =====
+const previousPeriods = [
+  {label:"6-12 أغسطس", total:85, depts:20},
+  {label:"13-19 أغسطس", total:81, depts:22},
+  {label:"20-26 أغسطس", total:49, depts:17},
+];
+const currentLabel = "27 أغسطس - 2 سبتمبر (حالية)";
+let tableHtml = '<tr><th>المؤشر</th>' + previousPeriods.map(p=>`<th>${p.label}</th>`).join('') + `<th class="current-col">${currentLabel}</th></tr>`;
+tableHtml += '<tr><td>إجمالي البلاغات</td>' + previousPeriods.map(p=>`<td>${p.total}</td>`).join('') + `<td class="current-col">${tickets.length}</td></tr>`;
+tableHtml += '<tr><td>عدد الأقسام</td>' + previousPeriods.map(p=>`<td>${p.depts}</td>`).join('') + `<td class="current-col">${new Set(tickets.map(t=>t.dept)).size}</td></tr>`;
+document.getElementById('periodsTable').innerHTML = tableHtml;
+</script>
+</body>
+</html>
